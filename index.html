@@ -66,6 +66,10 @@ p{margin:0}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .card .art{background:linear-gradient(var(--accent-soft),var(--bg));border-bottom:1px solid var(--line)}
 .card .art svg{display:block;width:100%;height:auto;max-height:150px}
+.art.idea{position:relative;display:block;text-decoration:none;color:inherit}
+.art.idea img{display:block;width:100%;height:auto;aspect-ratio:1200/670;max-width:100%;object-fit:cover;background:var(--accent-soft)}
+.idea-chip{position:absolute;left:12px;bottom:12px;background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 10px;font-family:var(--display);font-weight:700;font-size:1rem;line-height:1.15;display:grid;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.idea-chip small{font-family:var(--body);font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .card .body{padding:16px;display:grid;gap:10px}
 .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--sun-soft);padding:3px 8px;border-radius:6px}
 .meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem;color:var(--muted)}
@@ -170,11 +174,7 @@ const BUILDINGS = [
   {id:'d', slug:'4135-main', name:'4135 Main St', tag:'Land for sale', size:'About 1.34 acres (parcel records differ)', price:'Listed at $955,000', notes:'Vacant commercial land on Main Street', facade:'lot',
    concept:{key:'trucks', mark:'F', label:'a food truck park with a patio and play area', title:'Food truck park', blurb:'Rotating food trucks, shaded seating, a small play area and bike parking.'}},
 ];
-const IMG={
-  a:'https://cdn.gamma.app/7m9n2te9wzpisnt/design-anything/C12SeP9zHoyxmdu06QLXj/3BQ9ZWLjE70p76rlPb7pz.jpg',
-  b:'https://cdn.gamma.app/7m9n2te9wzpisnt/design-anything/bPQZWzTFRa1vXO4mOd1Pd/Hzry3RZbDJ06lYZ9aOCVd.jpg',
-  c:'https://cdn.gamma.app/7m9n2te9wzpisnt/design-anything/Gs4ocG8omDzR2vH8IS19V/h1EjteHU4dO33BBlyJzIn.jpg',
-  d:'https://cdn.gamma.app/7m9n2te9wzpisnt/design-anything/Vdv1ScrXFrEyApQelo6tn/FTZ1CwBLKdbH6_sa0HUzq.jpg'};
+const IMG={a:'img/a.jpg',b:'img/b.jpg',c:'img/c.jpg',d:'img/d.jpg'};
 const CATS=[['coffee','Coffee shop'],['bakery','Bakery'],['brunch','Breakfast / brunch'],['restaurant','Sit-down restaurant'],['taproom','Taproom / brewery'],['wine','Wine bar'],['icecream','Ice cream / dessert'],['bikeshop','Bike shop / trail stop'],['kids','Kids’ play space'],['fitness','Fitness / yoga'],['market','Small market / grocery'],['books','Books & gifts'],['cowork','Coworking']];
 const FREQ=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['rarely','Rarely'],['never','Never']];
 const WHEN=[['wkdam','Weekday morning'],['wkdmid','Weekday midday'],['wkdpm','Weekday evening'],['wkndam','Weekend morning'],['wkndpm','Weekend afternoon / evening']];
@@ -431,10 +431,11 @@ function viewHome(){
   const cards=BUILDINGS.map(b=>{
     const st=stats(b,{who:'all'}); const t=topOf(st.picks);
     const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
-    return `<article class="card"><div class="art">${facade(b.facade)}</div><div class="body">
+    return `<article class="card"><a class="art idea" href="#${b.slug}" aria-label="Weigh in on ${esc(b.name)}"><img src="${IMG[b.id]}" alt="Illustration of ${esc(b.concept.label)} at ${esc(b.name)}" loading="lazy" width="1200" height="670"><span class="idea-chip"><small>Suggested idea</small>${esc(b.concept.title)}</span></a><div class="body">
       <div><span class="tag">${esc(b.tag)}</span></div>
       <h3>${esc(b.name)}</h3>
       <div class="meta"><span>${esc(b.size)}</span><span>${esc(b.price)}</span><span>${esc(b.notes)}</span></div>
+      <p class="small muted"><b>What could go here?</b> ${esc(b.concept.blurb)} The picture is an illustration of one possible idea, not a real plan.</p>
       <div class="wish">${t?`<span class="muted small">Top wish so far</span><b>${esc(LBL.cats[t[0]])}</b><span class="muted small num">${pct(t[1],st.nd)}% of ${st.nd}</span>`:`<span class="muted small">No answers yet. Be the first.</span>`}</div>
       <div class="row"><a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a><a class="btn ghost" href="#${b.slug}-results">See results</a></div>
     </div></article>`}).join('');
@@ -483,7 +484,7 @@ function viewSurvey(b){
   <section class="bhead"><span class="tag" style="justify-self:start">${esc(b.tag)}</span><h1>${esc(b.name)}</h1><p class="muted">${esc(b.size)} · ${esc(b.notes)}</p></section>
   <form id="survey" novalidate>
     <div class="q">
-      <div class="qhead"><span class="step">Step 1 of ${needProfile?3:2}</span><h2>What would you want here?</h2><p class="muted small">Pick up to 3.</p></div>
+      <div class="qhead"><span class="step">Step 1 of ${needProfile?3:2}</span><h2>What would you want here?</h2><p class="muted small">Pick up to 3. The suggested ${esc(b.concept.title.toLowerCase())} is just one option. Pick whatever you would actually use.</p></div>
       ${chips('picks',CATS,{multi:true,max:3})}
       <div class="field"><label class="lbl" for="writein">Something else? <em>Optional</em></label><input type="text" id="writein" data-field="writein" maxlength="80" placeholder="e.g. a hardware store" value="${esc(d.writein)}"></div>
     </div>
