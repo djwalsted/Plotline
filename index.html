@@ -323,7 +323,7 @@ function setStatus(){
 }
 // Backend: Google Apps Script web app (Code.gs) that stores answers in a Google Sheet.
 // Paste the deployed web app URL (ends in /exec) here:
-const API_URL='';
+const API_URL='https://script.google.com/macros/s/AKfycbzFs2Fsw9xex5Tjcyq-4yVGZIWnHIm46EL_n3-CAtbzILhxGC0pwNOUqy8vi4_weP4kCQ/exec';
 function gs(fn,arg){
   if(!API_URL)return Promise.reject(new Error('no backend'));
   const req=fn==='getAnswers'
