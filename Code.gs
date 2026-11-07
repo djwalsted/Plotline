@@ -10,10 +10,9 @@ var HEADERS = [
   'Submitted', 'Building', 'What they want', 'Write-in',
   'Idea score (1-5)', 'Location score (1-5)', 'How often', 'When',
   'How they would get there', 'Spend per visit', 'Must-haves', 'Comment',
-  'Town', 'Distance from Main St', 'Gets around by', 'Trail use', 'Kids at home',
+  'Town', 'Distance from site', 'Gets around by', 'Trail use', 'Kids at home',
   'Respondent ID', 'App data (do not edit)'
 ];
-var BUILDINGS = ['a', 'b', 'c', 'd'];
 
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
@@ -77,7 +76,7 @@ function getAnswers() {
 function submitAnswer(p) {
   if (!p || typeof p.rid !== 'string' || !/^[a-z0-9]{6,40}$/.test(p.rid)) throw new Error('Bad respondent id');
   var r = p.row || {};
-  if (BUILDINGS.indexOf(r.building) < 0) throw new Error('Unknown building');
+  if (typeof r.building !== 'string' || !/^[a-z0-9-]{1,40}$/.test(r.building)) throw new Error('Unknown building');
   if (typeof p.data !== 'string' || p.data.length > 8000) throw new Error('Bad data');
   JSON.parse(p.data); // must be valid JSON
 
