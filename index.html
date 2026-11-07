@@ -224,6 +224,19 @@ h1 .pin-sm b{font-size:16px}
 .area-pin small{font:600 10px var(--body);opacity:.8}
 .art-sketch{background:var(--accent-soft);aspect-ratio:1200/670;display:grid;place-items:center;max-width:100%}
 .art-sketch svg{width:80%;height:auto}
+.releases{display:grid;gap:14px;padding-top:8px}
+.release{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px}
+.rel-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.rel-v{font-family:var(--display);font-weight:800;font-size:1.05rem}
+.rel-current{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:6px}
+.release h2{font-size:1.2rem}
+.release ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.release li{display:grid;grid-template-columns:5.6em 1fr;gap:10px;align-items:start;font-size:.95rem}
+.rel-tag{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:3px 0;border-radius:6px;margin-top:2px}
+.rel-new{background:var(--accent-soft);color:var(--accent)}
+.rel-improved{background:var(--sun-soft);color:var(--warn)}
+.rel-fixed{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.foot-ver{color:var(--muted)!important;font-weight:500!important;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -240,8 +253,9 @@ h1 .pin-sm b{font-size:16px}
 <main class="wrap" id="app"></main>
 <footer class="foot"><div class="foot-in">
   <span>Plotline · Timnath, Colorado</span>
-  <nav><a href="#privacy">Privacy</a><a href="#about">About</a><a href="#join">Get notified</a><a href="#developers">Request a survey</a></nav>
+  <nav><a href="#privacy">Privacy</a><a href="#about">About</a><a href="#join">Get notified</a><a href="#developers">Request a survey</a><a href="#release-notes">Release notes</a></nav>
   <span class="muted">We sell what the neighborhood thinks. Never who you are.</span>
+  <a class="foot-ver num" id="foot-ver" href="#release-notes">Version</a>
 </div></footer>
 <div class="toast" id="toast" hidden></div>
 
@@ -411,6 +425,51 @@ function makeDemo(){
 }
 const DEMO=makeDemo();
 
+// ---------- release notes (newest first; add an entry with every release) ----------
+const RELEASES=[
+  {v:'0.8.0', date:'2026-11-07', title:'Release notes', items:[
+    ['new','This page. Every change to Plotline is listed here, newest first.'],
+    ['new','The current version number is shown in the footer.']]},
+  {v:'0.7.0', date:'2026-11-07', title:'Areas across Timnath and Windsor', items:[
+    ['new','Weigh in now opens a map of areas: Old Town Timnath, I-25 & Harmony, Downtown Windsor, and I-25 & Highway 392.'],
+    ['new','Seven new sites with suggested ideas, including a grocery store, a gas station and market, a drive-thru restaurant, a family restaurant, an ice cream shop, a mixed-use district and a hotel.'],
+    ['new','Each area has its own page, map and lettered sites.'],
+    ['improved','Each survey now asks how far you live from that site, instead of from Timnath’s Main Street.'],
+    ['new','New results filter: within 2 miles.'],
+    ['new','New answer options: fast food / drive-thru, park / green space, homes / apartments, and hotel.'],
+    ['new','The developer page explains how to survey a whole area, like a portfolio of sites.']]},
+  {v:'0.6.1', date:'2026-11-07', title:'Clearer navigation', items:[
+    ['improved','The main menu now reads Weigh in · Get notified · About.'],
+    ['improved','The list of sites is titled “Open for feedback.”']]},
+  {v:'0.6.0', date:'2026-11-07', title:'Privacy policy', items:[
+    ['new','Alpha privacy policy, under attorney review.'],
+    ['new','Site footer with links to privacy, About, notifications and survey requests.'],
+    ['new','A privacy policy link next to every form that collects information.'],
+    ['improved','Site feedback is no longer linked to your survey answers.']]},
+  {v:'0.5.2', date:'2026-11-07', title:'Separate sign-up list', items:[
+    ['improved','Notification sign-ups are stored in their own list, separate from survey answers.']]},
+  {v:'0.5.1', date:'2026-11-07', title:'Our promise', items:[
+    ['new','“We sell what the neighborhood thinks. Never who you are.” Shown on the About page, the home page, every survey, the sign-up page and the developer page.']]},
+  {v:'0.5.0', date:'2026-11-07', title:'Get notified and Plotline On Demand', items:[
+    ['new','Get notified: sign up by email or text to hear about new projects near you.'],
+    ['new','Plotline On Demand: a page for developers, owners and cities to request a survey, with reach options from 200 to 5,000+ residents.']]},
+  {v:'0.4.0', date:'2026-11-07', title:'About Plotline', items:[
+    ['new','About page explaining why residents and developers use Plotline.'],
+    ['new','Answer options for a full grocery store and a gas station / convenience store.']]},
+  {v:'0.3.1', date:'2026-11-07', title:'Lettered sites', items:[
+    ['improved','Sites are lettered A, B, C… on the map, the legend, the cards and each survey, so they are easy to match up.']]},
+  {v:'0.3.0', date:'2026-11-06', title:'Map', items:[
+    ['new','Map of downtown Timnath with a pin for each site, a 10-minute walking circle and the Poudre River Trail.'],
+    ['improved','The idea for 4138 Main St changed to a kitchen and patio, since a brewery already operates in the building.']]},
+  {v:'0.2.0', date:'2026-11-06', title:'Suggested ideas', items:[
+    ['new','Each site shows a suggested idea and an illustration of what could go there.']]},
+  {v:'0.1.0', date:'2026-11-06', title:'First test version', items:[
+    ['new','Surveys for four Main Street buildings in Old Town Timnath: what you want there, a rating of one idea, and how you would use it.'],
+    ['new','Public results with filters for walking distance, town, trail riders, weekend mornings and families.'],
+    ['new','Answers are saved and shared live.']]}
+];
+const VERSION=RELEASES[0].v;
+
 // ---------- data helpers ----------
 function hasAnswers(p){return p&&((p.discovery&&Object.keys(p.discovery).length)||(p.concepts&&Object.keys(p.concepts).length))}
 function liveRespondents(){
@@ -536,6 +595,7 @@ function route(){
   if(h==='join')return {view:'join'};
   if(h==='developers')return {view:'developers'};
   if(h==='privacy')return {view:'privacy'};
+  if(h==='release-notes')return {view:'releases'};
   return {view:'home'};
 }
 
@@ -1056,6 +1116,21 @@ function viewPrivacy(){
   </article>`;
 }
 
+function viewReleases(){
+  const tag={new:'New',improved:'Improved',fixed:'Fixed'};
+  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  return `<section class="hero">
+    <span class="label">Release notes</span>
+    <h1>What’s new in Plotline</h1>
+    <p>Every change to the site, newest first. Plotline is in alpha testing, so versions start at 0.</p>
+  </section>
+  <div class="releases">${RELEASES.map((r,i)=>`<article class="release" id="v${r.v.replace(/\./g,'-')}">
+    <div class="rel-head"><span class="rel-v num">v${esc(r.v)}</span><time datetime="${r.date}" class="muted small">${fmt(r.date)}</time>${i===0?'<span class="rel-current">Current</span>':''}</div>
+    <h2>${esc(r.title)}</h2>
+    <ul>${r.items.map(([k,t])=>`<li><span class="rel-tag rel-${k}">${tag[k]}</span><span>${esc(t)}</span></li>`).join('')}</ul>
+  </article>`).join('')}</div>`;
+}
+
 // ---------- render ----------
 function render(){
   const r=route();
@@ -1065,10 +1140,11 @@ function render(){
   else if(r.view==='join')app.innerHTML=viewJoin();
   else if(r.view==='developers')app.innerHTML=viewDevelopers();
   else if(r.view==='privacy')app.innerHTML=viewPrivacy();
+  else if(r.view==='releases')app.innerHTML=viewReleases();
   else if(r.view==='area')app.innerHTML=viewArea(r.area);
   else app.innerHTML=viewHome();
   setStatus();
-  const navKey=r.view==='about'||r.view==='developers'||r.view==='privacy'?'about':r.view==='join'?'join':'home';
+  const navKey=r.view==='about'||r.view==='developers'||r.view==='privacy'||r.view==='releases'?'about':r.view==='join'?'join':'home';
   document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===navKey));
   if(r.view==='home'||r.view==='area')initMap(r); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
 }
@@ -1172,6 +1248,7 @@ document.addEventListener('submit',async e=>{
 });
 
 lastRoute=location.hash;
+{const fv=document.getElementById('foot-ver');if(fv)fv.textContent='Version '+VERSION+' (alpha)';}
 render();
 setTimeout(connect,0);
 })();
