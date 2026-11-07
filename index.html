@@ -59,6 +59,10 @@ p{margin:0}
 .nav a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.88rem;padding:6px 10px;border-radius:8px}
 .nav a.on{color:var(--ink);background:var(--bg)}
 .about-grid{display:grid;gap:14px;padding-top:24px}
+.promise{background:var(--ink);color:var(--bg);border-radius:16px;padding:22px 18px;display:grid;gap:10px}
+.promise .label{color:inherit;opacity:.75}
+.promise-line{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,5.5vw,2rem);line-height:1.15;text-wrap:balance;letter-spacing:-.01em}
+.promise p:last-child{opacity:.85;max-width:60ch}
 .pull{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.3;border-left:4px solid var(--sun);padding-left:14px;max-width:46ch}
 .cta-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-soft);border-radius:14px;padding:16px}
 .cta-card > div{display:grid;gap:4px;min-width:0;flex:1 1 220px}
@@ -537,7 +541,7 @@ function viewHome(){
     <span class="label">Old Town Timnath · Downtown buildings</span>
     <h1>What should go in these buildings?</h1>
     <p>Several Main Street buildings and lots are for sale or lease. Tell buyers and future business owners what you would actually spend money on. Every result is public.</p>
-    <div class="pledge"><span>No name or address</span><span>Takes about 2 minutes</span><span>Results published for everyone</span></div>
+    <div class="pledge"><span>No name or address</span><span>Takes about 2 minutes</span><span>Results published for everyone</span><span>We share opinions, never your info</span></div>
     <p class="small"><a href="#about">Why Plotline? For residents and developers \u2192</a></p>
   </section>
   <section class="section">
@@ -616,7 +620,7 @@ function viewSurvey(b){
     <div style="display:grid;gap:10px;margin-top:18px">
       <p class="error" id="form-error" role="alert" hidden></p>
       <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
-      <p class="privacy">We never ask your name or address. Results and comments are public and never show who wrote them. Groups smaller than 10 people are flagged as too small to trust.</p>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public, and comments are published without who wrote them. Groups smaller than 10 people are flagged as too small to trust.</p>
     </div>
   </form>`;
 }
@@ -713,6 +717,9 @@ function viewAbout(){
     </section>
   </div>
   <section class="section">
+    <div class="promise"><span class="label">Our promise</span><p class="promise-line">We sell what the neighborhood thinks. Never who you are.</p><p>Developers and business owners pay to hear combined, anonymous answers and comments. They never get your name, email, phone or anything that identifies you, and we never sell or share your contact info.</p></div>
+  </section>
+  <section class="section">
     <h2>How we keep it fair</h2>
     <ul class="points fair">
       ${item('Every result is public.','Whoever sponsors a survey cannot hide or edit the results.')}
@@ -730,7 +737,7 @@ function viewJoin(){
     <span class="label">Resident panel</span>
     <h1>Be on call for your neighborhood.</h1>
     <p>When someone proposes a new business or project near you, we will send you a 2-minute survey so your voice counts before decisions are made.</p>
-    <div class="pledge"><span>About 1\u20132 surveys a month</span><span>Only projects near you</span><span>Never shared with developers</span></div>
+    <div class="pledge"><span>About 1\u20132 surveys a month</span><span>Only projects near you</span><span>Your info is never sold or shared</span></div>
   </section>
   <section class="section">
     <div class="q" id="join-form">
@@ -743,7 +750,7 @@ function viewJoin(){
       <div class="field"><label class="lbl" for="j-near">Nearest intersection <em>Optional. Not your address; it helps us send projects near you.</em></label><input type="text" id="j-near" maxlength="80" placeholder="e.g. Main St & 4th Ave"></div>
       <p class="error" id="j-error" role="alert" hidden></p>
       <div class="row"><button type="button" class="btn primary block" data-act="join">Notify me</button></div>
-      <p class="privacy">Your contact info is stored separately from your survey answers and is never shared with developers or anyone else.</p>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> Your contact info is stored separately from your survey answers and is never sold or shared with developers or anyone else. We use it only to send you surveys.</p>
     </div>
   </section>`;
 }
@@ -782,7 +789,7 @@ function viewDevelopers(){
       ${item('You see results first.','You get a 14-day head start to review the results before they are published.')}
       ${item('Results are then public.','Every survey\u2019s results are published. Sponsors cannot hide or edit them.')}
       ${item('You respond publicly.','You reply to the top concerns residents raise. That reply is what turns critics into customers.')}
-      ${item('Residents stay anonymous.','You see combined, segmented results. Never names, contact info or individual answers.')}
+      ${item('You buy opinions, not data.','You get combined, segmented results and anonymous comments. Never names, contact info or individual answers. We do not sell resident data to anyone.')}
     </ul>
   </section>
   <section class="section" id="request">
