@@ -200,6 +200,16 @@ h1 .pin-sm b{font-size:16px}
 .f-wall{fill:var(--wall)} .f-brick{fill:var(--brick)} .f-trim{fill:var(--trim)} .f-glass{fill:var(--glass)} .f-ground{fill:var(--ground)} .f-sun{fill:var(--sun)} .f-sign{fill:var(--surface)} .f-text{fill:var(--ink);font:700 11px var(--body)}
 @media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
 @media (max-width:480px){.status{font-size:0;width:12px;height:12px;padding:0;border-radius:50%;background:var(--accent);flex:none}.status.local{background:var(--sun)}.nav a{padding:6px 7px;font-size:.84rem}.nav{gap:0}.brand small{display:none}.bar .in{gap:8px;flex-wrap:nowrap}}
+.foot{border-top:1px solid var(--line);background:var(--surface);margin-top:24px}
+.foot-in{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px calc(24px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;font-size:.85rem}
+.foot nav{display:flex;flex-wrap:wrap;gap:6px 16px}
+.foot a{color:var(--accent);font-weight:600;text-decoration:none}
+.privacy a{color:var(--accent)}
+.policy{display:grid;gap:12px;padding-top:20px;max-width:64ch}
+.policy h2{margin-top:18px}
+.policy h3{margin-top:6px}
+.policy ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.policy .promise{margin-block:8px}
 </style>
 </head>
 <body>
@@ -214,6 +224,11 @@ h1 .pin-sm b{font-size:16px}
   <span class="status" id="status">Connecting…</span>
 </div></header>
 <main class="wrap" id="app"></main>
+<footer class="foot"><div class="foot-in">
+  <span>Plotline · Timnath, Colorado</span>
+  <nav><a href="#privacy">Privacy</a><a href="#about">About</a><a href="#join">Get notified</a><a href="#developers">Request a survey</a></nav>
+  <span class="muted">We sell what the neighborhood thinks. Never who you are.</span>
+</div></footer>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -451,6 +466,7 @@ function route(){
   if(h==='about')return {view:'about'};
   if(h==='join')return {view:'join'};
   if(h==='developers')return {view:'developers'};
+  if(h==='privacy')return {view:'privacy'};
   return {view:'home'};
 }
 
@@ -620,7 +636,7 @@ function viewSurvey(b){
     <div style="display:grid;gap:10px;margin-top:18px">
       <p class="error" id="form-error" role="alert" hidden></p>
       <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
-      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public, and comments are published without who wrote them. Groups smaller than 10 people are flagged as too small to trust.</p>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public, and comments are published without who wrote them. Groups smaller than 10 people are flagged as too small to trust. <a href="#privacy">Privacy policy</a></p>
     </div>
   </form>`;
 }
@@ -676,7 +692,7 @@ function viewResults(b){
     <div class="cta-card"><div><h3>Thanks for weighing in.</h3><p class="small muted">Want a say in the next project near you? We will send you a 2-minute survey.</p></div><a class="btn primary" href="#join">Get notified</a></div>
     <div class="panel" id="feedback-panel">
       <h3>What do you think of this idea?</h3>
-      <p class="small muted">We are testing whether neighbors would use something like this. Was it easy? What was confusing? What would make you come back? Anonymous.</p>
+      <p class="small muted">We are testing whether neighbors would use something like this. Was it easy? What was confusing? What would make you come back? Anonymous. <a href="#privacy">Privacy policy</a></p>
       <textarea id="fb" maxlength="1500" placeholder="Honest thoughts welcome…"></textarea>
       <div class="row"><button type="button" class="btn primary" data-act="feedback">Send feedback</button></div>
     </div>
@@ -750,7 +766,7 @@ function viewJoin(){
       <div class="field"><label class="lbl" for="j-near">Nearest intersection <em>Optional. Not your address; it helps us send projects near you.</em></label><input type="text" id="j-near" maxlength="80" placeholder="e.g. Main St & 4th Ave"></div>
       <p class="error" id="j-error" role="alert" hidden></p>
       <div class="row"><button type="button" class="btn primary block" data-act="join">Notify me</button></div>
-      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> Your contact info is stored separately from your survey answers and is never sold or shared with developers or anyone else. We use it only to send you surveys.</p>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> Your contact info is stored separately from your survey answers and is never sold or shared with developers or anyone else. We use it only to send you surveys. <a href="#privacy">Privacy policy</a></p>
     </div>
   </section>`;
 }
@@ -794,7 +810,7 @@ function viewDevelopers(){
   </section>
   <section class="section" id="request">
     <div class="q">
-      <div class="qhead"><span class="label">Plotline On Demand</span><h2>Request a survey</h2><p class="muted small">We will get back to you with a plan and a quote.</p></div>
+      <div class="qhead"><span class="label">Plotline On Demand</span><h2>Request a survey</h2><p class="muted small">We will get back to you with a plan and a quote. <a href="#privacy">Privacy policy</a></p></div>
       <div class="field"><label class="lbl" for="r-name">Your name and company</label><input type="text" id="r-name" maxlength="120" autocomplete="name"></div>
       <div class="field"><label class="lbl" for="r-contact">Email or phone</label><input type="text" id="r-contact" maxlength="120" autocomplete="email"></div>
       <div class="field"><label class="lbl" for="r-prop">Project address</label><input type="text" id="r-prop" maxlength="160" placeholder="e.g. 4100 Main St, Timnath"></div>
@@ -807,6 +823,113 @@ function viewDevelopers(){
   </section>`;
 }
 
+function viewPrivacy(){
+  const h=(t)=>`<h2>${t}</h2>`;
+  return `<article class="policy">
+  <div class="banner"><b>Alpha draft.</b> Plotline is in early testing. This policy is being reviewed by an attorney and may change. We will post any update here with a new date.</div>
+  <span class="label">Privacy policy</span>
+  <h1>Plotline Privacy Policy</h1>
+  <p class="muted">Last updated November 7, 2026</p>
+  <p>Plotline is an early-stage project based in Timnath, Colorado (\u201cPlotline,\u201d \u201cwe,\u201d \u201cus\u201d). This policy explains what we collect when you use our website and services, how we use it, and the choices you have.</p>
+
+  <div class="promise"><span class="label">Our promise</span><p class="promise-line">We sell what the neighborhood thinks. Never who you are.</p><p>Developers, property owners, brokers and business owners may pay us to run surveys and to see the combined, anonymous results. They never receive your name, email address, phone number, or any information we believe could identify you. We do not sell, rent or trade personal information to anyone.</p></div>
+
+  ${h('What we collect')}
+  <h3>When you answer a survey</h3>
+  <ul>
+    <li>Your answers: what you would like in a building or lot, your ratings of an idea and a location, how often you would visit, when, how you would get there, what you would spend, what would make it a must-stop, and any comment you choose to write.</li>
+    <li>A few questions about you, asked once: the town you live in, roughly how far you live from Main Street, how you usually get around, how often you use the Poudre River Trail, and, if you choose to answer, whether you have kids at home.</li>
+    <li>A random respondent code created by your browser. It lets you update your answers and keeps one person from being counted twice. It is not linked to your name or contact details.</li>
+  </ul>
+  <p>Surveys never ask for your name, street address, email or phone number.</p>
+  <h3>When you sign up to be notified</h3>
+  <ul>
+    <li>Your email address and/or mobile number.</li>
+    <li>Whether you agreed to receive text messages, and the exact wording you agreed to, with the date.</li>
+    <li>Your town, ZIP code, and optionally your nearest intersection (not your street address), so we only contact you about projects near you.</li>
+  </ul>
+  <p>This information is stored separately from your survey answers. We do not link it to your answers.</p>
+  <h3>When you send feedback or request a survey</h3>
+  <ul><li>What you write, and any name, company, contact details and project information you provide. Feedback is not linked to your survey answers.</li></ul>
+  <h3>Information collected automatically</h3>
+  <ul>
+    <li>Like most websites, the services that host and deliver our site receive your IP address, browser type and the pages you request. See \u201cThird-party services\u201d below.</li>
+    <li>Your browser stores your respondent code and a copy of your own answers on your device, so you can see and update them. You can clear this at any time in your browser settings.</li>
+    <li>We do not use advertising cookies, tracking pixels or analytics tools.</li>
+  </ul>
+
+  ${h('How we use information')}
+  <ul>
+    <li>To publish combined survey results and anonymous comments.</li>
+    <li>To give survey sponsors combined results broken out by groups, such as \u201cneighbors within walking distance\u201d or \u201cweekly trail users.\u201d</li>
+    <li>To send people who signed up survey invitations by email or text, only as they agreed.</li>
+    <li>To respond to feedback and survey requests.</li>
+    <li>To prevent duplicate or fraudulent responses and to keep the service secure.</li>
+    <li>To comply with the law.</li>
+  </ul>
+
+  ${h('What sponsors and the public see')}
+  <ul>
+    <li><b>The public</b> sees combined results and anonymous comments for each survey.</li>
+    <li><b>Sponsors</b> see combined results broken out by groups such as town, distance, travel habits and household type, plus anonymous comments.</li>
+    <li><b>Small groups are flagged.</b> When a filter matches fewer than 10 people, we mark it as too small to rely on.</li>
+    <li><b>Comments are published without your name.</b> Please do not include personal details in comments. We may edit or remove comments that identify a person.</li>
+  </ul>
+  <p>Nobody outside Plotline receives individual survey responses, respondent codes, or contact information.</p>
+
+  ${h('How we share information')}
+  <p>We share personal information only:</p>
+  <ul>
+    <li><b>With service providers</b> that host our website and store our data on our behalf, only to run the service (listed below).</li>
+    <li><b>When required by law</b>, such as a valid subpoena, or to protect the safety of any person.</li>
+    <li><b>If Plotline is sold or merges</b> with another company, in which case this policy and our promise continue to apply to information collected under it.</li>
+  </ul>
+  <p>We require survey sponsors to agree not to attempt to identify any respondent from survey results.</p>
+
+  ${h('Text messages')}
+  <p>If you agree to receive texts, we will text you invitations to surveys about projects near you, up to 4 times a month. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Agreeing to receive texts is not required to use Plotline.</p>
+  <p><b>No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Text messaging opt-in data and consent are never shared with any third party.</b></p>
+
+  ${h('Email')}
+  <p>Every survey invitation we email includes a way to unsubscribe, and we honor unsubscribe requests within 10 business days.</p>
+
+  ${h('Third-party services')}
+  <p>Our site relies on these services, which may receive your IP address and basic browser information when you visit:</p>
+  <ul>
+    <li><b>GitHub Pages</b> (GitHub, Inc.) hosts the website.</li>
+    <li><b>Google Apps Script and Google Sheets</b> (Google LLC) receive and store survey answers, sign-ups and messages for us.</li>
+    <li><b>OpenStreetMap</b> tile servers provide the map images.</li>
+    <li><b>unpkg</b> delivers the open-source map software (Leaflet).</li>
+    <li><b>Google Fonts</b> delivers the site\u2019s fonts.</li>
+  </ul>
+  <p>Other than Google, which stores data for us, these services do not receive your survey answers.</p>
+
+  ${h('Do Not Track')}
+  <p>We do not track you across other websites, so we do not change our practices in response to browser Do Not Track signals. Other than the services listed above, no third parties track your activity on our site.</p>
+
+  ${h('How long we keep information')}
+  <ul>
+    <li>Survey answers: for as long as a survey\u2019s results are published, so neighborhoods can compare over time.</li>
+    <li>Contact information for notifications: until you unsubscribe, then deleted, except a record of your opt-out so we do not contact you again.</li>
+    <li>Feedback and survey requests: for as long as needed to respond and run the service.</li>
+  </ul>
+  <p>We will set specific time limits before Plotline leaves alpha testing.</p>
+
+  ${h('Your choices and rights')}
+  <p>You can ask us to tell you what personal information we have about you, correct or delete it, or remove you from notifications. Because surveys are anonymous, we can only find your survey answers if you give us the respondent code stored in your browser. We offer these choices to everyone, wherever you live.</p>
+  <p>During alpha testing, send requests through the feedback form on any results page, or reply to any message we send you. Write \u201cPrivacy request\u201d and tell us what you would like us to do.</p>
+
+  ${h('Security')}
+  <p>We limit access to stored data to the people who run Plotline and keep contact information separate from survey answers. No system is perfectly secure. If a breach affects your personal information, we will notify you as required by law.</p>
+
+  ${h('Children')}
+  <p>Plotline is intended for adults 18 and older. We do not knowingly collect personal information from children under 13. If we learn we have, we will delete it.</p>
+
+  ${h('Changes to this policy')}
+  <p>If we change this policy, we will post the new version here with a new date. If a change materially affects how we use information we already have, we will tell people who signed up for notifications before it takes effect. We will never change our promise not to sell personal information without your consent.</p>
+  </article>`;
+}
+
 // ---------- render ----------
 function render(){
   const r=route();
@@ -815,9 +938,10 @@ function render(){
   else if(r.view==='about')app.innerHTML=viewAbout();
   else if(r.view==='join')app.innerHTML=viewJoin();
   else if(r.view==='developers')app.innerHTML=viewDevelopers();
+  else if(r.view==='privacy')app.innerHTML=viewPrivacy();
   else app.innerHTML=viewHome();
   setStatus();
-  const navKey=r.view==='about'||r.view==='developers'?'about':r.view==='join'?'join':'home';
+  const navKey=r.view==='about'||r.view==='developers'||r.view==='privacy'?'about':r.view==='join'?'join':'home';
   document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===navKey));
   if(r.view==='home')initMap(); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
 }
@@ -890,7 +1014,7 @@ document.addEventListener('click',e=>{
     const ta=$('#fb'); const text=(ta&&ta.value||'').trim();
     if(!text){toast('Type a few words first.');return}
     act.disabled=true; act.textContent='Sending…';
-    gs('submitFeedback',{rid:getRid(),text}).then(()=>{ta.value='';act.textContent='Thanks!';toast('Feedback sent. Thank you!')})
+    gs('submitFeedback',{rid:'',text}).then(()=>{ta.value='';act.textContent='Thanks!';toast('Feedback sent. Thank you!')})
       .catch(()=>{act.disabled=false;act.textContent='Send feedback';toast('Could not send. Please try again.')});
   }
 });
