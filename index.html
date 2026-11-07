@@ -59,6 +59,16 @@ p{margin:0}
 .nav a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.88rem;padding:6px 10px;border-radius:8px}
 .nav a.on{color:var(--ink);background:var(--bg)}
 .about-grid{display:grid;gap:14px;padding-top:24px}
+.pull{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.3;border-left:4px solid var(--sun);padding-left:14px;max-width:46ch}
+.cta-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-soft);border-radius:14px;padding:16px}
+.cta-card > div{display:grid;gap:4px;min-width:0;flex:1 1 220px}
+.tiers{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:2px;align-content:start}
+.tier b{font-family:var(--display);font-size:2rem;line-height:1.1}
+.tier p{margin-top:6px}
+select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+.check{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.88rem;color:var(--muted)}
+.check input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent)}
 @media (min-width:640px){.about-grid{grid-template-columns:1fr 1fr}}
 .side{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:grid;gap:14px;align-content:start}
 .side .btn{justify-self:start}
@@ -185,7 +195,7 @@ h1 .pin-sm b{font-size:16px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
 .f-wall{fill:var(--wall)} .f-brick{fill:var(--brick)} .f-trim{fill:var(--trim)} .f-glass{fill:var(--glass)} .f-ground{fill:var(--ground)} .f-sun{fill:var(--sun)} .f-sign{fill:var(--surface)} .f-text{fill:var(--ink);font:700 11px var(--body)}
 @media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
-@media (max-width:480px){.status{font-size:0;width:12px;height:12px;padding:0;border-radius:50%;background:var(--accent);flex:none}.status.local{background:var(--sun)}.nav a{padding:6px 8px}}
+@media (max-width:480px){.status{font-size:0;width:12px;height:12px;padding:0;border-radius:50%;background:var(--accent);flex:none}.status.local{background:var(--sun)}.nav a{padding:6px 7px;font-size:.84rem}.nav{gap:0}.brand small{display:none}.bar .in{gap:8px;flex-wrap:nowrap}}
 </style>
 </head>
 <body>
@@ -196,7 +206,7 @@ h1 .pin-sm b{font-size:16px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="9" width="20" height="13" rx="2" fill="var(--accent)"/><path d="M2 9 L12 3 L22 9" fill="none" stroke="var(--sun)" stroke-width="2.4" stroke-linejoin="round"/><rect x="9" y="14" width="6" height="8" fill="var(--surface)"/></svg>
     Plotline <small>Timnath</small>
   </a>
-  <nav class="nav"><a href="#home" id="nav-home">Buildings</a><a href="#about" id="nav-about">About</a></nav>
+  <nav class="nav"><a href="#home" data-nav="home">Buildings</a><a href="#join" data-nav="join">Get notified</a><a href="#about" data-nav="about">About</a></nav>
   <span class="status" id="status">Connecting…</span>
 </div></header>
 <main class="wrap" id="app"></main>
@@ -435,6 +445,8 @@ function route(){
   const h=(location.hash||'').replace('#','');
   for(const b of BUILDINGS){ if(h===b.slug)return {view:'survey',b}; if(h===b.slug+'-results')return {view:'results',b}; }
   if(h==='about')return {view:'about'};
+  if(h==='join')return {view:'join'};
+  if(h==='developers')return {view:'developers'};
   return {view:'home'};
 }
 
@@ -549,7 +561,10 @@ function viewHome(){
     <div class="cards">${cards}</div>
   </section>
   <section class="section">
-    <div class="note"><b>This is an early test version.</b> Listing details come from public commercial listing sites as of November 2026 and may be out of date. Confirm with the listing broker. A map pin for your home and text-message updates come next.</div>
+    <div class="cta-card"><div><h3>Want a say in the next project?</h3><p class="small muted">Get a 2-minute survey when something new is proposed near you.</p></div><a class="btn primary" href="#join">Get notified</a></div>
+  </section>
+  <section class="section">
+    <div class="note"><b>This is an early test version.</b> Listing details come from public commercial listing sites as of November 2026 and may be out of date. Confirm with the listing broker. Building owner or developer? <a href="#developers">Request a survey</a>.</div>
   </section>`;
 }
 
@@ -654,6 +669,7 @@ function viewResults(b){
       <span class="label">Narrow down</span>${flagChips}
     </div>
     ${body}
+    <div class="cta-card"><div><h3>Thanks for weighing in.</h3><p class="small muted">Want a say in the next project near you? We will send you a 2-minute survey.</p></div><a class="btn primary" href="#join">Get notified</a></div>
     <div class="panel" id="feedback-panel">
       <h3>What do you think of this idea?</h3>
       <p class="small muted">We are testing whether neighbors would use something like this. Was it easy? What was confusing? What would make you come back? Anonymous.</p>
@@ -670,6 +686,7 @@ function viewAbout(){
     <span class="label">About Plotline</span>
     <h1>Build what the neighborhood will actually use.</h1>
     <p>Empty buildings get filled one way or another. Plotline makes sure the people who live here are asked first, and that the people investing here know what will work before they spend a dollar.</p>
+    <p class="pull">Plotline puts numbers to the conversations neighbors already have at birthday parties and backyard barbecues.</p>
   </section>
   <div class="about-grid">
     <section class="side">
@@ -681,7 +698,7 @@ function viewAbout(){
         ${item('Rate the idea and the spot separately.','You might love a drive-thru chicken place but not next to the elementary school at pickup time. Plotline asks about the idea and the location as two different questions.')}
         ${item('Stay anonymous.','No name, no address. Four quick questions about where you live and how you get around, so results can show what nearby neighbors want compared with visitors.')}
       </ul>
-      <a class="btn primary" href="#home">Weigh in on a building</a>
+      <div class="row"><a class="btn primary" href="#home">Weigh in on a building</a><a class="btn ghost" href="#join">Get notified about new projects</a></div>
     </section>
     <section class="side">
       <span class="label">For developers & business owners</span>
@@ -692,7 +709,7 @@ function viewAbout(){
         ${item('Find problems while they are cheap to fix.','Comments surface traffic, parking and noise concerns early enough to design around them instead of fighting them at a hearing.')}
         ${item('Show you listened.','Neutral, public results give council and neighbors evidence that the project reflects what the community asked for.')}
       </ul>
-      <button type="button" class="btn ghost" data-act="to-contact">Run a survey for your property</button>
+      <a class="btn primary" href="#developers">See Plotline On Demand</a>
     </section>
   </div>
   <section class="section">
@@ -700,19 +717,85 @@ function viewAbout(){
     <ul class="points fair">
       ${item('Every result is public.','Whoever sponsors a survey cannot hide or edit the results.')}
       ${item('Neutral questions.','Every building gets the same questions, and every idea is illustrated in the same style so no option looks better just because of the picture.')}
-      ${item('No personal information.','We never ask for names or addresses. Comments are published without who wrote them.')}
+      ${item('No personal information in answers.','Surveys never ask for names or addresses. Comments are published without who wrote them.')}
+      ${item('Your contact info stays with us.','If you sign up for notifications, your email or phone is kept separate from your answers and is never shared with developers.')}
       ${item('Small groups are flagged.','Any filter with fewer than 10 people is marked as a hint, not a result.')}
     </ul>
+  </section>`;
+}
+
+function viewJoin(){
+  const towns=TOWNS.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('');
+  return `<section class="hero">
+    <span class="label">Resident panel</span>
+    <h1>Be on call for your neighborhood.</h1>
+    <p>When someone proposes a new business or project near you, we will send you a 2-minute survey so your voice counts before decisions are made.</p>
+    <div class="pledge"><span>About 1\u20132 surveys a month</span><span>Only projects near you</span><span>Never shared with developers</span></div>
   </section>
-  <section class="section" id="contact">
+  <section class="section">
+    <div class="q" id="join-form">
+      <div class="qhead"><h2>Get notified about new projects</h2><p class="muted small">Email, text, or both. You can stop anytime.</p></div>
+      <div class="field"><label class="lbl" for="j-email">Email</label><input type="email" id="j-email" maxlength="120" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label class="lbl" for="j-phone">Mobile number <em>Optional, for texts</em></label><input type="tel" id="j-phone" maxlength="20" autocomplete="tel" placeholder="(970) 555-0123"></div>
+      <label class="check"><input type="checkbox" id="j-sms"><span>Text me about new surveys near me. Up to 4 texts a month. Message and data rates may apply. Reply STOP to opt out.</span></label>
+      <div class="field"><label class="lbl" for="j-town">Where do you live?</label><select id="j-town"><option value="">Choose one</option>${towns}</select></div>
+      <div class="field"><label class="lbl" for="j-zip">ZIP code</label><input type="text" id="j-zip" inputmode="numeric" maxlength="5" placeholder="80547"></div>
+      <div class="field"><label class="lbl" for="j-near">Nearest intersection <em>Optional. Not your address; it helps us send projects near you.</em></label><input type="text" id="j-near" maxlength="80" placeholder="e.g. Main St & 4th Ave"></div>
+      <p class="error" id="j-error" role="alert" hidden></p>
+      <div class="row"><button type="button" class="btn primary block" data-act="join">Notify me</button></div>
+      <p class="privacy">Your contact info is stored separately from your survey answers and is never shared with developers or anyone else.</p>
+    </div>
+  </section>`;
+}
+
+function viewDevelopers(){
+  const step=(t,d)=>`<li><span><b>${t}</b> ${d}</span></li>`;
+  const item=(t,d)=>`<li><b>${t}</b><span>${d}</span></li>`;
+  return `<section class="hero">
+    <span class="label">Plotline On Demand</span>
+    <h1>Ask the neighborhood before you build.</h1>
+    <p>Resident surveys on demand for developers, brokers and businesses. Tell us about your project and how many residents you need to hear from. We handle the rest.</p>
+    <div class="row"><button type="button" class="btn primary" data-act="to-request">Request a survey</button><a class="btn ghost" href="#home">See a live example</a></div>
+  </section>
+  <section class="section">
+    <h2>How it works</h2>
+    <ol class="steps">
+      ${step('Tell us about the project.','The address, what you are considering, and any renderings or site plans.')}
+      ${step('We write neutral questions.','Same format residents already know: what they want there, how they rate your idea and the location, how often they would go and what they would spend. You review it for accuracy.')}
+      ${step('We reach residents.','We notify our resident panel near your site, then add postcards, QR signs on the property and local ads until we reach your target.')}
+      ${step('You get the results.','Live results as answers come in, split by distance, town, household and travel habits, plus the themes in residents\u2019 comments.')}
+    </ol>
+  </section>
+  <section class="section">
+    <h2>Choose your reach</h2>
+    <div class="tiers">
+      <div class="tier"><span class="label">Neighborhood</span><b class="num">200+</b><span>residents</span><p class="small muted">Nearby neighbors in walking and short-drive distance. Best for a single storefront.</p></div>
+      <div class="tier"><span class="label">Town-wide</span><b class="num">1,000+</b><span>residents</span><p class="small muted">The whole town, with nearby neighbors broken out. Best for a new restaurant, grocery or larger site.</p></div>
+      <div class="tier"><span class="label">Regional</span><b class="num">5,000+</b><span>residents</span><p class="small muted">Timnath plus Windsor, Severance and east Fort Collins. Best for regional retail and multi-use projects.</p></div>
+    </div>
+    <p class="small muted">Pricing depends on reach and timeline. We quote it up front.</p>
+  </section>
+  <section class="section">
+    <h2>The ground rules</h2>
+    <p class="muted small">These rules are why residents trust Plotline, and why your results carry weight at a hearing.</p>
+    <ul class="points fair">
+      ${item('You see results first.','You get a 14-day head start to review the results before they are published.')}
+      ${item('Results are then public.','Every survey\u2019s results are published. Sponsors cannot hide or edit them.')}
+      ${item('You respond publicly.','You reply to the top concerns residents raise. That reply is what turns critics into customers.')}
+      ${item('Residents stay anonymous.','You see combined, segmented results. Never names, contact info or individual answers.')}
+    </ul>
+  </section>
+  <section class="section" id="request">
     <div class="q">
-      <div class="qhead"><span class="label">For property owners, brokers & businesses</span><h2>Run a survey for your property</h2><p class="muted small">Tell us about the building or lot. We will get back to you about setting up a survey for it.</p></div>
-      <div class="field"><label class="lbl" for="c-name">Your name and company</label><input type="text" id="c-name" maxlength="120" autocomplete="name"></div>
-      <div class="field"><label class="lbl" for="c-contact">Email or phone</label><input type="text" id="c-contact" maxlength="120" autocomplete="email"></div>
-      <div class="field"><label class="lbl" for="c-prop">Property address</label><input type="text" id="c-prop" maxlength="160" placeholder="e.g. 4100 Main St, Timnath"></div>
-      <div class="field"><label class="lbl" for="c-msg">What are you considering? <em>Optional</em></label><textarea id="c-msg" maxlength="800" placeholder="Leasing to a restaurant, selling the lot, opening a business\u2026"></textarea></div>
-      <p class="error" id="c-error" role="alert" hidden></p>
-      <div class="row"><button type="button" class="btn primary" data-act="inquiry">Send</button></div>
+      <div class="qhead"><span class="label">Plotline On Demand</span><h2>Request a survey</h2><p class="muted small">We will get back to you with a plan and a quote.</p></div>
+      <div class="field"><label class="lbl" for="r-name">Your name and company</label><input type="text" id="r-name" maxlength="120" autocomplete="name"></div>
+      <div class="field"><label class="lbl" for="r-contact">Email or phone</label><input type="text" id="r-contact" maxlength="120" autocomplete="email"></div>
+      <div class="field"><label class="lbl" for="r-prop">Project address</label><input type="text" id="r-prop" maxlength="160" placeholder="e.g. 4100 Main St, Timnath"></div>
+      <div class="field"><label class="lbl" for="r-msg">What are you considering?</label><textarea id="r-msg" maxlength="800" placeholder="A drive-thru restaurant, a grocery store, mixed-use with apartments\u2026"></textarea></div>
+      <div class="field"><label class="lbl" for="r-reach">How many residents do you want to hear from?</label><select id="r-reach"><option>Not sure yet</option><option>Neighborhood (200+)</option><option>Town-wide (1,000+)</option><option>Regional (5,000+)</option></select></div>
+      <div class="field"><label class="lbl" for="r-when">When do you need results?</label><select id="r-when"><option>Flexible</option><option>Within a month</option><option>Within 2\u20133 months</option><option>Before a scheduled hearing</option></select></div>
+      <p class="error" id="r-error" role="alert" hidden></p>
+      <div class="row"><button type="button" class="btn primary" data-act="od-request">Send request</button></div>
     </div>
   </section>`;
 }
@@ -723,10 +806,12 @@ function render(){
   if(r.view==='survey')app.innerHTML=viewSurvey(r.b);
   else if(r.view==='results')app.innerHTML=viewResults(r.b);
   else if(r.view==='about')app.innerHTML=viewAbout();
+  else if(r.view==='join')app.innerHTML=viewJoin();
+  else if(r.view==='developers')app.innerHTML=viewDevelopers();
   else app.innerHTML=viewHome();
   setStatus();
-  const nh=document.getElementById('nav-home'),na=document.getElementById('nav-about');
-  if(nh&&na){nh.classList.toggle('on',r.view!=='about');na.classList.toggle('on',r.view==='about')}
+  const navKey=r.view==='about'||r.view==='developers'?'about':r.view==='join'?'join':'home';
+  document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===navKey));
   if(r.view==='home')initMap(); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
 }
 let lastRoute='';
@@ -764,16 +849,34 @@ document.addEventListener('click',e=>{
     render();
   }
   else if(a==='locate'){locate(v)}
-  else if(a==='to-contact'){const c=document.getElementById('contact');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
-  else if(a==='inquiry'){
-    const val=id=>(document.getElementById(id)||{}).value||'';
-    const name=val('c-name').trim(),contact=val('c-contact').trim(),prop=val('c-prop').trim(),msg=val('c-msg').trim();
-    const err=$('#c-error');
-    if(!contact||!prop){err.textContent='Please add a way to reach you and the property address.';err.hidden=false;return}
+  else if(a==='to-request'){const c=document.getElementById('request');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
+  else if(a==='od-request'){
+    const val=id=>((document.getElementById(id)||{}).value||'').trim();
+    const err=$('#r-error');
+    if(!val('r-contact')||!val('r-prop')){err.textContent='Please add a way to reach you and the project address.';err.hidden=false;return}
     err.hidden=true; act.disabled=true; act.textContent='Sending\u2026';
-    const text='[Property inquiry] Name: '+name+' | Contact: '+contact+' | Property: '+prop+' | Message: '+msg;
-    gs('submitFeedback',{rid:getRid(),text:text.slice(0,1500)}).then(()=>{act.textContent='Sent';toast('Thanks! We will be in touch.');['c-name','c-contact','c-prop','c-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
-      .catch(()=>{act.disabled=false;act.textContent='Send';toast('Could not send. Please try again.')});
+    const text='[On-demand request] Name: '+val('r-name')+' | Contact: '+val('r-contact')+' | Project: '+val('r-prop')+' | Reach: '+val('r-reach')+' | Timeline: '+val('r-when')+' | Details: '+val('r-msg');
+    gs('submitFeedback',{rid:'',text:text.slice(0,1500)}).then(()=>{act.textContent='Sent';toast('Thanks! We will get back to you with a plan.');['r-name','r-contact','r-prop','r-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
+      .catch(()=>{act.disabled=false;act.textContent='Send request';toast('Could not send. Please try again.')});
+  }
+  else if(a==='join'){
+    const val=id=>((document.getElementById(id)||{}).value||'').trim();
+    const email=val('j-email'), phone=val('j-phone').replace(/[^\d+]/g,''), sms=!!(document.getElementById('j-sms')||{}).checked;
+    const town=val('j-town'), zip=val('j-zip'), near=val('j-near');
+    const err=$('#j-error'); const fail=m=>{err.textContent=m;err.hidden=false};
+    if(!email&&!phone)return fail('Add an email, a mobile number, or both.');
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return fail('That email address does not look right.');
+    if(phone&&phone.replace(/\D/g,'').length<10)return fail('Please enter a 10-digit mobile number.');
+    if(phone&&!sms)return fail('To get texts, check the box agreeing to receive them. Or remove the number to use email only.');
+    if(!town)return fail('Please choose where you live.');
+    if(zip&&!/^\d{5}$/.test(zip))return fail('ZIP code should be 5 digits.');
+    err.hidden=true; act.disabled=true; act.textContent='Signing you up\u2026';
+    const payload={email,phone,sms,town:LBL.towns[town]||town,zip,near,source:'join page'};
+    const done=()=>{const f=document.getElementById('join-form');if(f)f.innerHTML='<div class="qhead"><h2>You\u2019re on the list.</h2><p class="muted">We will reach out when there is a new project near you. Thanks for speaking up for your neighborhood.</p></div><div class="row"><a class="btn primary" href="#home">Weigh in on a building now</a></div>';toast('You are on the list.')};
+    gs('joinPanel',payload).then(done).catch(()=>{
+      const text='[Panel signup] Email: '+email+' | Mobile: '+phone+' | Text consent: '+(sms?'yes':'no')+' | Town: '+payload.town+' | ZIP: '+zip+' | Near: '+near;
+      gs('submitFeedback',{rid:'',text}).then(done).catch(()=>{act.disabled=false;act.textContent='Notify me';toast('Could not sign you up. Please try again.')});
+    });
   }
   else if(a==='edit-profile'){S.editProfile=true;S.touched=true;render()}
   else if(a==='feedback'){

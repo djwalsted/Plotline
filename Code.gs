@@ -35,6 +35,7 @@ function doPost(e) {
     var body = JSON.parse(e.postData.contents);
     if (body.action === 'submitAnswer') return json_({ ok: true, result: submitAnswer(body.payload) });
     if (body.action === 'submitFeedback') return json_({ ok: true, result: submitFeedback(body.payload) });
+    if (body.action === 'joinPanel') return json_({ ok: true, result: joinPanel(body.payload) });
     return json_({ ok: false, error: 'Unknown action' });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
@@ -116,5 +117,41 @@ function submitFeedback(p) {
   if (!p || typeof p.text !== 'string' || !p.text.trim()) throw new Error('Empty feedback');
   var sh = sheet_(FEEDBACK_SHEET, ['Submitted', 'Feedback', 'Respondent ID']);
   sh.appendRow([new Date(), clean_(p.text, 1500), clean_(p.rid, 40)]);
+  return true;
+}
+
+// Resident panel: people who want to be notified about new projects.
+// Kept on its own tab and never linked to survey answers.
+var PANEL_SHEET = 'Panel';
+var PANEL_HEADERS = ['Joined', 'Email', 'Mobile', 'Text consent', 'Consent wording', 'Town', 'ZIP', 'Nearest intersection', 'Signed up from', 'Status'];
+var SMS_CONSENT = 'Text me about new surveys near me. Up to 4 texts a month. Message and data rates may apply. Reply STOP to opt out.';
+
+function joinPanel(p) {
+  if (!p) throw new Error('Missing data');
+  var email = String(p.email || '').trim().toLowerCase().slice(0, 120);
+  var phone = String(p.phone || '').replace(/[^0-9+]/g, '').slice(0, 16);
+  if (!email && !phone) throw new Error('Email or phone required');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Bad email');
+  var sms = p.sms === true && !!phone;
+  var row = [new Date(), clean_(email, 120), clean_(phone, 16), sms ? 'Yes' : 'No', sms ? SMS_CONSENT : '',
+    clean_(p.town, 40), clean_(p.zip, 5), clean_(p.near, 80), clean_(p.source, 40), 'Active'];
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var sh = sheet_(PANEL_SHEET, PANEL_HEADERS);
+    var last = sh.getLastRow();
+    if (last >= 2) {
+      var keys = sh.getRange(2, 2, last - 1, 2).getValues();
+      for (var i = 0; i < keys.length; i++) {
+        if ((email && String(keys[i][0]).toLowerCase() === email) || (phone && String(keys[i][1]) === phone)) {
+          sh.getRange(i + 2, 1, 1, row.length).setValues([row]);
+          return true;
+        }
+      }
+    }
+    sh.appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
   return true;
 }
