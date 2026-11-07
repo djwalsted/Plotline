@@ -220,7 +220,7 @@ h1 .pin-sm b{font-size:16px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="9" width="20" height="13" rx="2" fill="var(--accent)"/><path d="M2 9 L12 3 L22 9" fill="none" stroke="var(--sun)" stroke-width="2.4" stroke-linejoin="round"/><rect x="9" y="14" width="6" height="8" fill="var(--surface)"/></svg>
     Plotline <small>Timnath</small>
   </a>
-  <nav class="nav"><a href="#home" data-nav="home">Buildings</a><a href="#join" data-nav="join">Get notified</a><a href="#about" data-nav="about">About</a></nav>
+  <nav class="nav"><a href="#home" data-nav="home">Weigh in</a><a href="#join" data-nav="join">Get notified</a><a href="#about" data-nav="about">About</a></nav>
   <span class="status" id="status">Connecting…</span>
 </div></header>
 <main class="wrap" id="app"></main>
@@ -576,7 +576,7 @@ function viewHome(){
     <div class="legend">${BUILDINGS.map(b=>`<button type="button" class="legend-item" data-act="locate" data-v="${b.id}"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span><b>${esc(b.name.split(' \u00b7 ')[0])}</b><small>${esc(b.concept.title)}</small></span></button>`).join('')}</div>
   </section>
   <section class="section">
-    <div class="row" style="align-items:center;justify-content:space-between"><h2>Buildings</h2>${modeSwitch()}</div>
+    <div class="row" style="align-items:center;justify-content:space-between"><h2>Open for feedback</h2>${modeSwitch()}</div>
     ${demoBanner()}
     <div class="cards">${cards}</div>
   </section>
@@ -604,7 +604,7 @@ function viewSurvey(b){
   const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
   const needProfile=!S.mine.profile||S.editProfile;
   const d=S.draft;
-  return `<a class="back" href="#home">← All buildings</a>
+  return `<a class="back" href="#home">← Open for feedback</a>
   <section class="bhead"><span class="tag" style="justify-self:start">${esc(b.tag)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1><p class="muted">${esc(b.size)} · ${esc(b.notes)}</p></section>
   <form id="survey" novalidate>
     <div class="q">
@@ -677,7 +677,7 @@ function viewResults(b){
     </div>
     <div class="panel"><h3>What people said</h3>${quotes||'<p class="muted small">No comments from this group yet.</p>'}</div>`;
   }
-  return `<a class="back" href="#home">← All buildings</a>
+  return `<a class="back" href="#home">← Open for feedback</a>
   <section class="bhead"><span class="label">Public results · ${esc(b.tag)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1></section>
   <div style="display:grid;gap:14px">
     <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a></div>
