@@ -113,6 +113,18 @@ textarea{min-height:90px;resize:vertical}
 .pin-wrap{background:none;border:0}
 .pin{display:grid;place-items:center;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .pin b{transform:rotate(45deg);color:var(--accent-ink);font-family:var(--display);font-size:15px}
+.pin-sm{width:28px;height:28px;flex:none;border-width:2px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.pin-sm b{font-size:13px}
+h1 .pin-sm{width:34px;height:34px}
+h1 .pin-sm b{font-size:16px}
+.pin-on-art{position:absolute;left:12px;top:12px;width:40px;height:40px}
+.pin-on-art b{font-size:18px}
+.lettered{display:flex;align-items:center;gap:10px}
+.lettered > span:last-child{min-width:0}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.legend-item{appearance:none;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;color:var(--ink);font:inherit;min-width:0}
+.legend-item > span:last-child{display:grid;min-width:0;font-size:.88rem;line-height:1.25}
+.legend-item small{color:var(--muted);font-size:.78rem}
 .map-label{background:none;border:0}
 .map-label span{display:inline-block;transform:translateX(-50%);white-space:nowrap;font:600 12px var(--body);color:var(--accent);background:var(--surface);padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
 .pop{display:grid;gap:4px;font-family:var(--body)}
@@ -181,14 +193,14 @@ textarea{min-height:90px;resize:vertical}
 "use strict";
 // ---------- reference data ----------
 const BUILDINGS = [
-  {id:'a', slug:'4100-main', name:'4100 Main St', tag:'For lease', size:'About 1,627 sq ft', price:'Listed at $22.90/sq ft/yr NNN (about $3,100/mo)', notes:'Standalone retail/office building with strong street visibility. A homebuilder currently lists its office here, so confirm what is available.', facade:'corner', lat:40.53213, lng:-104.98103,
+  {id:'a', letter:'A', slug:'4100-main', name:'4100 Main St', tag:'For lease', size:'About 1,627 sq ft', price:'Listed at $22.90/sq ft/yr NNN (about $3,100/mo)', notes:'Standalone retail/office building with strong street visibility. A homebuilder currently lists its office here, so confirm what is available.', facade:'corner', lat:40.53213, lng:-104.98103,
    concept:{key:'coffee', mark:'C', label:'a coffee shop', title:'Coffee shop', blurb:'Espresso, drip and pastries. Opens early, closes mid-afternoon.'}},
-  {id:'b', slug:'4138-main', name:'4138 Main St · Colorado Feed & Grain', tag:'Status unclear', size:'2,872 sq ft end-cap, main level', price:'Rate not listed', notes:'Historic 1920 building. Timnath Beerwerks runs a taproom in part of it; this listing is a separate end-cap space', facade:'brick', lat:40.52898, lng:-104.98171,
-   concept:{key:'kitchen', mark:'K', label:'a kitchen and patio next to the brewery', title:'Kitchen & patio', blurb:'A casual spot serving food to go with a beer from Timnath Beerwerks next door, with a family-friendly patio.'}},
-  {id:'c', slug:'4109-main', name:'4109 Main St', tag:'Sublease', size:'774–2,348 sq ft (three spaces)', price:'Rate not listed', notes:'Class C building with Main Street frontage and natural light, currently office', facade:'wide', lat:40.5316, lng:-104.9829, approx:true,
+  {id:'c', letter:'B', slug:'4109-main', name:'4109 Main St', tag:'Sublease', size:'774–2,348 sq ft (three spaces)', price:'Rate not listed', notes:'Class C building with Main Street frontage and natural light, currently office', facade:'wide', lat:40.5316, lng:-104.9829, approx:true,
    concept:{key:'bakery', mark:'B', label:'a bakery and breakfast spot', title:'Bakery & breakfast', blurb:'Bread, pastries and a short breakfast menu. Busy weekends, grab-and-go weekdays.'}},
-  {id:'d', slug:'4135-main', name:'4135 Main St', tag:'Land for sale', size:'About 1.34 acres (parcel records differ)', price:'Listed at $955,000', notes:'Vacant commercial land on Main Street', facade:'lot', lat:40.5293, lng:-104.983, approx:true,
+  {id:'d', letter:'C', slug:'4135-main', name:'4135 Main St', tag:'Land for sale', size:'About 1.34 acres (parcel records differ)', price:'Listed at $955,000', notes:'Vacant commercial land on Main Street', facade:'lot', lat:40.5293, lng:-104.983, approx:true,
    concept:{key:'trucks', mark:'F', label:'a food truck park with a patio and play area', title:'Food truck park', blurb:'Rotating food trucks, shaded seating, a small play area and bike parking.'}},
+  {id:'b', letter:'D', slug:'4138-main', name:'4138 Main St · Colorado Feed & Grain', tag:'Status unclear', size:'2,872 sq ft end-cap, main level', price:'Rate not listed', notes:'Historic 1920 building. Timnath Beerwerks runs a taproom in part of it; this listing is a separate end-cap space', facade:'brick', lat:40.52898, lng:-104.98171,
+   concept:{key:'kitchen', mark:'K', label:'a kitchen and patio next to the brewery', title:'Kitchen & patio', blurb:'A casual spot serving food to go with a beer from Timnath Beerwerks next door, with a family-friendly patio.'}}
 ];
 const IMG={a:'img/a.jpg',b:'img/b.jpg',c:'img/c.jpg',d:'img/d.jpg'};
 const GEO={"trail":[[[40.53727,-105.00013],[40.53724,-105.00013],[40.53722,-105.00015],[40.53712,-105.00024],[40.53701,-105.00037],[40.53659,-105.00076],[40.53648,-105.00091],[40.53637,-105.00101],[40.53629,-105.00103],[40.53623,-105.00102],[40.53616,-105.00102],[40.53609,-105.00099],[40.53603,-105.00094],[40.53584,-105.00063],[40.53571,-105.00054],[40.53541,-105.00041],[40.53516,-105.00032],[40.53487,-105.00023],[40.53453,-105.00017],[40.53421,-105.00016],[40.5341,-105.00015],[40.53297,-105.0002],[40.53216,-105.0001],[40.53178,-104.99999],[40.53149,-104.99987],[40.53149,-104.99977],[40.5314,-104.99955],[40.53132,-104.99929],[40.53131,-104.99913],[40.53128,-104.99891],[40.53124,-104.99873],[40.5312,-104.99858],[40.5311,-104.99837],[40.53103,-104.99822],[40.53101,-104.99798],[40.53096,-104.99759],[40.53092,-104.99743],[40.53085,-104.99729],[40.53081,-104.99717],[40.53079,-104.99702],[40.53079,-104.997],[40.53076,-104.99648],[40.53076,-104.99636],[40.53075,-104.99625],[40.53075,-104.99609],[40.53075,-104.99601],[40.53074,-104.99574],[40.53074,-104.99562],[40.53074,-104.99537],[40.53072,-104.99517],[40.53071,-104.99502],[40.53072,-104.99495],[40.53071,-104.99484],[40.53068,-104.9947],[40.53069,-104.99461],[40.53069,-104.99455],[40.53068,-104.99444],[40.53066,-104.99433],[40.53065,-104.99422],[40.53065,-104.99415],[40.53064,-104.99405],[40.53062,-104.99392],[40.5306,-104.99387],[40.5306,-104.99379],[40.53063,-104.99365],[40.53066,-104.99353],[40.53066,-104.9934],[40.53066,-104.99333],[40.53067,-104.99316],[40.53068,-104.99298],[40.53069,-104.99281],[40.53069,-104.99271],[40.5307,-104.99263],[40.53067,-104.99249],[40.53062,-104.99239],[40.53058,-104.99235],[40.53051,-104.99231],[40.53046,-104.99223],[40.53043,-104.99208],[40.5304,-104.99193],[40.53036,-104.99182],[40.53029,-104.99176],[40.53025,-104.99153],[40.53022,-104.99077],[40.5302,-104.99034],[40.53021,-104.98988],[40.53024,-104.98899],[40.53024,-104.9881],[40.53021,-104.98718],[40.5302,-104.98692],[40.53013,-104.98665],[40.53003,-104.98648],[40.52988,-104.98638],[40.52917,-104.98628],[40.52815,-104.98617],[40.52764,-104.98617],[40.52747,-104.98614],[40.52682,-104.98614],[40.52637,-104.98611],[40.52607,-104.98614],[40.52583,-104.98626],[40.52554,-104.98632],[40.52526,-104.9863],[40.52482,-104.98641],[40.52466,-104.98659],[40.52451,-104.9867],[40.52447,-104.98674],[40.5242,-104.98675],[40.52415,-104.98674],[40.52406,-104.9868],[40.52395,-104.9869],[40.52387,-104.98694],[40.52379,-104.98692],[40.5237,-104.98688],[40.52367,-104.98686],[40.52324,-104.98653],[40.52316,-104.9865],[40.52304,-104.98648],[40.52297,-104.98648],[40.52293,-104.98651],[40.52292,-104.98653],[40.52291,-104.98657],[40.52293,-104.98726],[40.52296,-104.98725],[40.52295,-104.9868]],[[40.55915,-105.02003],[40.55911,-105.01998],[40.55905,-105.0199],[40.55883,-105.01974],[40.55863,-105.01965],[40.55853,-105.01962],[40.55837,-105.01959],[40.5583,-105.01955],[40.55823,-105.01954],[40.55818,-105.01957],[40.55807,-105.01973],[40.558,-105.01976],[40.55795,-105.01977],[40.55785,-105.01971],[40.55777,-105.01966],[40.55772,-105.01966],[40.55768,-105.01967],[40.55754,-105.01974],[40.55743,-105.01977],[40.55722,-105.01979],[40.55714,-105.01979],[40.55698,-105.01976],[40.55686,-105.01976],[40.5567,-105.0198],[40.55659,-105.01981],[40.55644,-105.01981],[40.5564,-105.01979],[40.55632,-105.01971],[40.55624,-105.01968]],[[40.52295,-104.9868],[40.52293,-104.98554]],[[40.51935,-104.97671],[40.51924,-104.97706],[40.51921,-104.9772],[40.51919,-104.97739],[40.51919,-104.97746],[40.51919,-104.97753],[40.51918,-104.97778],[40.51915,-104.97799],[40.51909,-104.97815],[40.51907,-104.9782],[40.51896,-104.97844],[40.5189,-104.97852],[40.51886,-104.97865],[40.51888,-104.97874],[40.51895,-104.97884],[40.51925,-104.97915],[40.51934,-104.97926],[40.51944,-104.97936],[40.5197,-104.97954],[40.51987,-104.97966],[40.52019,-104.9798],[40.52041,-104.97993],[40.52068,-104.97999],[40.52088,-104.98009],[40.52099,-104.98018],[40.52102,-104.98014],[40.52104,-104.98021],[40.52107,-104.98028],[40.52115,-104.98035],[40.52137,-104.98048],[40.52194,-104.9807],[40.52213,-104.98085],[40.52224,-104.98094],[40.52229,-104.98111],[40.52229,-104.98142],[40.5223,-104.98158],[40.52225,-104.98183],[40.52211,-104.98223],[40.52215,-104.98235],[40.52232,-104.9824],[40.52274,-104.98244],[40.52284,-104.98249],[40.52284,-104.98316],[40.52286,-104.98358],[40.52286,-104.9837],[40.52292,-104.98513],[40.52293,-104.98554]],[[40.51584,-104.9651],[40.51585,-104.96508],[40.51588,-104.96495],[40.51594,-104.96468],[40.51599,-104.96445],[40.51599,-104.96427],[40.51597,-104.96405],[40.51594,-104.96384],[40.5159,-104.96362],[40.5159,-104.96347],[40.5159,-104.96331],[40.51584,-104.96331],[40.51573,-104.96331],[40.51568,-104.96331],[40.51297,-104.96324],[40.51246,-104.96322]],[[40.51921,-104.97602],[40.51923,-104.97595],[40.51925,-104.97581],[40.51933,-104.97516],[40.51937,-104.97482],[40.51936,-104.97475],[40.51935,-104.9747]]],"main":[[[40.53023,-104.98229],[40.53115,-104.98229],[40.53151,-104.98229],[40.53156,-104.98229],[40.53195,-104.98229],[40.53201,-104.98229],[40.53277,-104.98229],[40.53299,-104.98229],[40.53303,-104.98229],[40.5331,-104.98229],[40.53314,-104.98229],[40.53327,-104.98229],[40.53379,-104.98228],[40.53445,-104.98228],[40.53452,-104.98228],[40.53511,-104.98229],[40.53552,-104.98229],[40.53602,-104.9823],[40.53608,-104.9823],[40.53678,-104.98228],[40.53747,-104.98229]],[[40.52475,-104.98229],[40.52484,-104.98233],[40.52509,-104.98233],[40.52634,-104.98232],[40.52689,-104.98232]],[[40.52294,-104.98219],[40.52305,-104.9822]]]};
@@ -464,8 +476,8 @@ function initMap(){
   GEO.trail.forEach(seg=>L.polyline(seg,{color:sun,weight:4,opacity:.9}).bindTooltip('Poudre River Trail',{sticky:true}).addTo(MAP));
   BUILDINGS.forEach(b=>{
     const st=stats(b,{who:'all'}); const t=topOf(st.picks);
-    const icon=L.divIcon({className:'pin-wrap',html:`<span class="pin"><b>${esc(b.concept.mark)}</b></span>`,iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-36]});
-    const html=`<div class="pop"><strong>${esc(b.name)}</strong><span class="pop-idea">Suggested idea: ${esc(b.concept.title)}</span>
+    const icon=L.divIcon({className:'pin-wrap',html:`<span class="pin"><b>${esc(b.letter)}</b></span>`,iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-36]});
+    const html=`<div class="pop"><strong>${esc(b.letter)} \u00b7 ${esc(b.name)}</strong><span class="pop-idea">Suggested idea: ${esc(b.concept.title)}</span>
       <span class="pop-meta">${esc(b.tag)} · ${esc(b.size)}</span>
       ${t?`<span class="pop-meta">Top wish so far: <b>${esc(LBL.cats[t[0]])}</b></span>`:''}
       ${b.approx?'<span class="pop-meta"><i>Pin location is approximate.</i></span>':''}
@@ -486,9 +498,9 @@ function viewHome(){
   const cards=BUILDINGS.map(b=>{
     const st=stats(b,{who:'all'}); const t=topOf(st.picks);
     const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
-    return `<article class="card"><a class="art idea" href="#${b.slug}" aria-label="Weigh in on ${esc(b.name)}"><img src="${IMG[b.id]}" alt="Illustration of ${esc(b.concept.label)} at ${esc(b.name)}" loading="lazy" width="1200" height="670"><span class="idea-chip"><small>Suggested idea</small>${esc(b.concept.title)}</span></a><div class="body">
+    return `<article class="card"><a class="art idea" href="#${b.slug}" aria-label="Weigh in on ${esc(b.name)}"><img src="${IMG[b.id]}" alt="Illustration of ${esc(b.concept.label)} at ${esc(b.name)}" loading="lazy" width="1200" height="670"><span class="pin pin-on-art" aria-hidden="true"><b>${esc(b.letter)}</b></span><span class="idea-chip"><small>Suggested idea</small>${esc(b.concept.title)}</span></a><div class="body">
       <div><span class="tag">${esc(b.tag)}</span></div>
-      <h3>${esc(b.name)}</h3>
+      <h3 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h3>
       <div class="meta"><span>${esc(b.size)}</span><span>${esc(b.price)}</span><span>${esc(b.notes)}</span></div>
       <p class="small muted"><b>What could go here?</b> ${esc(b.concept.blurb)} The picture is an illustration of one possible idea, not a real plan.</p>
       <div class="wish">${t?`<span class="muted small">Top wish so far</span><b>${esc(LBL.cats[t[0]])}</b><span class="muted small num">${pct(t[1],st.nd)}% of ${st.nd}</span>`:`<span class="muted small">No answers yet. Be the first.</span>`}</div>
@@ -511,8 +523,9 @@ function viewHome(){
   </section>
   <section class="section">
     <h2>Map</h2>
-    <p class="small muted">Tap a pin to see the suggested idea. The dashed circle is about a 10-minute walk from Main Street. The gold line is the Poudre River Trail. Pinch to zoom.</p>
+    <p class="small muted">Tap a pin or a letter below to see the suggested idea. The dashed circle is about a 10-minute walk from Main Street. The gold line is the Poudre River Trail. Pinch to zoom.</p>
     <div id="map" class="map" role="region" aria-label="Map of downtown Timnath buildings"></div>
+    <div class="legend">${BUILDINGS.map(b=>`<button type="button" class="legend-item" data-act="locate" data-v="${b.id}"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span><b>${esc(b.name.split(' \u00b7 ')[0])}</b><small>${esc(b.concept.title)}</small></span></button>`).join('')}</div>
   </section>
   <section class="section">
     <div class="row" style="align-items:center;justify-content:space-between"><h2>Buildings</h2>${modeSwitch()}</div>
@@ -541,7 +554,7 @@ function viewSurvey(b){
   const needProfile=!S.mine.profile||S.editProfile;
   const d=S.draft;
   return `<a class="back" href="#home">← All buildings</a>
-  <section class="bhead"><span class="tag" style="justify-self:start">${esc(b.tag)}</span><h1>${esc(b.name)}</h1><p class="muted">${esc(b.size)} · ${esc(b.notes)}</p></section>
+  <section class="bhead"><span class="tag" style="justify-self:start">${esc(b.tag)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1><p class="muted">${esc(b.size)} · ${esc(b.notes)}</p></section>
   <form id="survey" novalidate>
     <div class="q">
       <div class="qhead"><span class="step">Step 1 of ${needProfile?3:2}</span><h2>What would you want here?</h2><p class="muted small">Pick up to 3. The suggested ${esc(b.concept.title.toLowerCase())} is just one option. Pick whatever you would actually use.</p></div>
@@ -614,7 +627,7 @@ function viewResults(b){
     <div class="panel"><h3>What people said</h3>${quotes||'<p class="muted small">No comments from this group yet.</p>'}</div>`;
   }
   return `<a class="back" href="#home">← All buildings</a>
-  <section class="bhead"><span class="label">Public results · ${esc(b.tag)}</span><h1>${esc(b.name)}</h1></section>
+  <section class="bhead"><span class="label">Public results · ${esc(b.tag)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1></section>
   <div style="display:grid;gap:14px">
     <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a></div>
     ${demoBanner()}
