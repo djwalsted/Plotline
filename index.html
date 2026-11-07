@@ -55,7 +55,19 @@ p{margin:0}
 .brand{font-family:var(--display);font-weight:800;font-size:1.2rem;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
 .brand svg{width:22px;height:22px}
 .brand small{font-family:var(--body);font-weight:600;font-size:.8rem;color:var(--muted)}
-.status{margin-left:auto;font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.88rem;padding:6px 10px;border-radius:8px}
+.nav a.on{color:var(--ink);background:var(--bg)}
+.about-grid{display:grid;gap:14px;padding-top:24px}
+@media (min-width:640px){.about-grid{grid-template-columns:1fr 1fr}}
+.side{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:grid;gap:14px;align-content:start}
+.side .btn{justify-self:start}
+.points{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.points li{display:grid;gap:2px;padding-left:14px;border-left:3px solid var(--accent-soft)}
+.points li b{font-weight:700}
+.points li span{color:var(--muted);font-size:.95rem}
+.fair{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.status{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
 .status.local{background:var(--sun-soft);color:var(--warn)}
 
 /* home */
@@ -173,6 +185,7 @@ h1 .pin-sm b{font-size:16px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
 .f-wall{fill:var(--wall)} .f-brick{fill:var(--brick)} .f-trim{fill:var(--trim)} .f-glass{fill:var(--glass)} .f-ground{fill:var(--ground)} .f-sun{fill:var(--sun)} .f-sign{fill:var(--surface)} .f-text{fill:var(--ink);font:700 11px var(--body)}
 @media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
+@media (max-width:480px){.status{font-size:0;width:12px;height:12px;padding:0;border-radius:50%;background:var(--accent);flex:none}.status.local{background:var(--sun)}.nav a{padding:6px 8px}}
 </style>
 </head>
 <body>
@@ -183,6 +196,7 @@ h1 .pin-sm b{font-size:16px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="9" width="20" height="13" rx="2" fill="var(--accent)"/><path d="M2 9 L12 3 L22 9" fill="none" stroke="var(--sun)" stroke-width="2.4" stroke-linejoin="round"/><rect x="9" y="14" width="6" height="8" fill="var(--surface)"/></svg>
     Plotline <small>Timnath</small>
   </a>
+  <nav class="nav"><a href="#home" id="nav-home">Buildings</a><a href="#about" id="nav-about">About</a></nav>
   <span class="status" id="status">Connecting…</span>
 </div></header>
 <main class="wrap" id="app"></main>
@@ -205,7 +219,7 @@ const BUILDINGS = [
 const IMG={a:'img/a.jpg',b:'img/b.jpg',c:'img/c.jpg',d:'img/d.jpg'};
 const GEO={"trail":[[[40.53727,-105.00013],[40.53724,-105.00013],[40.53722,-105.00015],[40.53712,-105.00024],[40.53701,-105.00037],[40.53659,-105.00076],[40.53648,-105.00091],[40.53637,-105.00101],[40.53629,-105.00103],[40.53623,-105.00102],[40.53616,-105.00102],[40.53609,-105.00099],[40.53603,-105.00094],[40.53584,-105.00063],[40.53571,-105.00054],[40.53541,-105.00041],[40.53516,-105.00032],[40.53487,-105.00023],[40.53453,-105.00017],[40.53421,-105.00016],[40.5341,-105.00015],[40.53297,-105.0002],[40.53216,-105.0001],[40.53178,-104.99999],[40.53149,-104.99987],[40.53149,-104.99977],[40.5314,-104.99955],[40.53132,-104.99929],[40.53131,-104.99913],[40.53128,-104.99891],[40.53124,-104.99873],[40.5312,-104.99858],[40.5311,-104.99837],[40.53103,-104.99822],[40.53101,-104.99798],[40.53096,-104.99759],[40.53092,-104.99743],[40.53085,-104.99729],[40.53081,-104.99717],[40.53079,-104.99702],[40.53079,-104.997],[40.53076,-104.99648],[40.53076,-104.99636],[40.53075,-104.99625],[40.53075,-104.99609],[40.53075,-104.99601],[40.53074,-104.99574],[40.53074,-104.99562],[40.53074,-104.99537],[40.53072,-104.99517],[40.53071,-104.99502],[40.53072,-104.99495],[40.53071,-104.99484],[40.53068,-104.9947],[40.53069,-104.99461],[40.53069,-104.99455],[40.53068,-104.99444],[40.53066,-104.99433],[40.53065,-104.99422],[40.53065,-104.99415],[40.53064,-104.99405],[40.53062,-104.99392],[40.5306,-104.99387],[40.5306,-104.99379],[40.53063,-104.99365],[40.53066,-104.99353],[40.53066,-104.9934],[40.53066,-104.99333],[40.53067,-104.99316],[40.53068,-104.99298],[40.53069,-104.99281],[40.53069,-104.99271],[40.5307,-104.99263],[40.53067,-104.99249],[40.53062,-104.99239],[40.53058,-104.99235],[40.53051,-104.99231],[40.53046,-104.99223],[40.53043,-104.99208],[40.5304,-104.99193],[40.53036,-104.99182],[40.53029,-104.99176],[40.53025,-104.99153],[40.53022,-104.99077],[40.5302,-104.99034],[40.53021,-104.98988],[40.53024,-104.98899],[40.53024,-104.9881],[40.53021,-104.98718],[40.5302,-104.98692],[40.53013,-104.98665],[40.53003,-104.98648],[40.52988,-104.98638],[40.52917,-104.98628],[40.52815,-104.98617],[40.52764,-104.98617],[40.52747,-104.98614],[40.52682,-104.98614],[40.52637,-104.98611],[40.52607,-104.98614],[40.52583,-104.98626],[40.52554,-104.98632],[40.52526,-104.9863],[40.52482,-104.98641],[40.52466,-104.98659],[40.52451,-104.9867],[40.52447,-104.98674],[40.5242,-104.98675],[40.52415,-104.98674],[40.52406,-104.9868],[40.52395,-104.9869],[40.52387,-104.98694],[40.52379,-104.98692],[40.5237,-104.98688],[40.52367,-104.98686],[40.52324,-104.98653],[40.52316,-104.9865],[40.52304,-104.98648],[40.52297,-104.98648],[40.52293,-104.98651],[40.52292,-104.98653],[40.52291,-104.98657],[40.52293,-104.98726],[40.52296,-104.98725],[40.52295,-104.9868]],[[40.55915,-105.02003],[40.55911,-105.01998],[40.55905,-105.0199],[40.55883,-105.01974],[40.55863,-105.01965],[40.55853,-105.01962],[40.55837,-105.01959],[40.5583,-105.01955],[40.55823,-105.01954],[40.55818,-105.01957],[40.55807,-105.01973],[40.558,-105.01976],[40.55795,-105.01977],[40.55785,-105.01971],[40.55777,-105.01966],[40.55772,-105.01966],[40.55768,-105.01967],[40.55754,-105.01974],[40.55743,-105.01977],[40.55722,-105.01979],[40.55714,-105.01979],[40.55698,-105.01976],[40.55686,-105.01976],[40.5567,-105.0198],[40.55659,-105.01981],[40.55644,-105.01981],[40.5564,-105.01979],[40.55632,-105.01971],[40.55624,-105.01968]],[[40.52295,-104.9868],[40.52293,-104.98554]],[[40.51935,-104.97671],[40.51924,-104.97706],[40.51921,-104.9772],[40.51919,-104.97739],[40.51919,-104.97746],[40.51919,-104.97753],[40.51918,-104.97778],[40.51915,-104.97799],[40.51909,-104.97815],[40.51907,-104.9782],[40.51896,-104.97844],[40.5189,-104.97852],[40.51886,-104.97865],[40.51888,-104.97874],[40.51895,-104.97884],[40.51925,-104.97915],[40.51934,-104.97926],[40.51944,-104.97936],[40.5197,-104.97954],[40.51987,-104.97966],[40.52019,-104.9798],[40.52041,-104.97993],[40.52068,-104.97999],[40.52088,-104.98009],[40.52099,-104.98018],[40.52102,-104.98014],[40.52104,-104.98021],[40.52107,-104.98028],[40.52115,-104.98035],[40.52137,-104.98048],[40.52194,-104.9807],[40.52213,-104.98085],[40.52224,-104.98094],[40.52229,-104.98111],[40.52229,-104.98142],[40.5223,-104.98158],[40.52225,-104.98183],[40.52211,-104.98223],[40.52215,-104.98235],[40.52232,-104.9824],[40.52274,-104.98244],[40.52284,-104.98249],[40.52284,-104.98316],[40.52286,-104.98358],[40.52286,-104.9837],[40.52292,-104.98513],[40.52293,-104.98554]],[[40.51584,-104.9651],[40.51585,-104.96508],[40.51588,-104.96495],[40.51594,-104.96468],[40.51599,-104.96445],[40.51599,-104.96427],[40.51597,-104.96405],[40.51594,-104.96384],[40.5159,-104.96362],[40.5159,-104.96347],[40.5159,-104.96331],[40.51584,-104.96331],[40.51573,-104.96331],[40.51568,-104.96331],[40.51297,-104.96324],[40.51246,-104.96322]],[[40.51921,-104.97602],[40.51923,-104.97595],[40.51925,-104.97581],[40.51933,-104.97516],[40.51937,-104.97482],[40.51936,-104.97475],[40.51935,-104.9747]]],"main":[[[40.53023,-104.98229],[40.53115,-104.98229],[40.53151,-104.98229],[40.53156,-104.98229],[40.53195,-104.98229],[40.53201,-104.98229],[40.53277,-104.98229],[40.53299,-104.98229],[40.53303,-104.98229],[40.5331,-104.98229],[40.53314,-104.98229],[40.53327,-104.98229],[40.53379,-104.98228],[40.53445,-104.98228],[40.53452,-104.98228],[40.53511,-104.98229],[40.53552,-104.98229],[40.53602,-104.9823],[40.53608,-104.9823],[40.53678,-104.98228],[40.53747,-104.98229]],[[40.52475,-104.98229],[40.52484,-104.98233],[40.52509,-104.98233],[40.52634,-104.98232],[40.52689,-104.98232]],[[40.52294,-104.98219],[40.52305,-104.9822]]]};
 const DOWNTOWN=[40.5305,-104.9823];
-const CATS=[['coffee','Coffee shop'],['bakery','Bakery'],['brunch','Breakfast / brunch'],['restaurant','Sit-down restaurant'],['taproom','Taproom / brewery'],['wine','Wine bar'],['icecream','Ice cream / dessert'],['bikeshop','Bike shop / trail stop'],['kids','Kids’ play space'],['fitness','Fitness / yoga'],['market','Small market / grocery'],['books','Books & gifts'],['cowork','Coworking']];
+const CATS=[['coffee','Coffee shop'],['bakery','Bakery'],['brunch','Breakfast / brunch'],['restaurant','Sit-down restaurant'],['taproom','Taproom / brewery'],['wine','Wine bar'],['icecream','Ice cream / dessert'],['bikeshop','Bike shop / trail stop'],['kids','Kids’ play space'],['fitness','Fitness / yoga'],['market','Small market / grocery'],['grocery','Full grocery store'],['gas','Gas station / convenience store'],['books','Books & gifts'],['cowork','Coworking']];
 const FREQ=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['rarely','Rarely'],['never','Never']];
 const WHEN=[['wkdam','Weekday morning'],['wkdmid','Weekday midday'],['wkdpm','Weekday evening'],['wkndam','Weekend morning'],['wkndpm','Weekend afternoon / evening']];
 const HOW=[['walk','Walk'],['bike','Bike'],['drive','Drive']];
@@ -420,6 +434,7 @@ function save(quiet,b){
 function route(){
   const h=(location.hash||'').replace('#','');
   for(const b of BUILDINGS){ if(h===b.slug)return {view:'survey',b}; if(h===b.slug+'-results')return {view:'results',b}; }
+  if(h==='about')return {view:'about'};
   return {view:'home'};
 }
 
@@ -511,6 +526,7 @@ function viewHome(){
     <h1>What should go in these buildings?</h1>
     <p>Several Main Street buildings and lots are for sale or lease. Tell buyers and future business owners what you would actually spend money on. Every result is public.</p>
     <div class="pledge"><span>No name or address</span><span>Takes about 2 minutes</span><span>Results published for everyone</span></div>
+    <p class="small"><a href="#about">Why Plotline? For residents and developers \u2192</a></p>
   </section>
   <section class="section">
     <h2>How it works</h2>
@@ -647,13 +663,70 @@ function viewResults(b){
   </div>`;
 }
 
+
+function viewAbout(){
+  const item=(t,d)=>`<li><b>${t}</b><span>${d}</span></li>`;
+  return `<section class="hero">
+    <span class="label">About Plotline</span>
+    <h1>Build what the neighborhood will actually use.</h1>
+    <p>Empty buildings get filled one way or another. Plotline makes sure the people who live here are asked first, and that the people investing here know what will work before they spend a dollar.</p>
+  </section>
+  <div class="about-grid">
+    <section class="side">
+      <span class="label">For residents</span>
+      <h2>Have a say before the lease is signed.</h2>
+      <ul class="points">
+        ${item('Get asked early.','Most decisions about what opens on Main Street happen privately, long before a public hearing. Your answers reach buyers and business owners while the choice is still open.')}
+        ${item('Say what is missing.','Nobody needs a sixth coffee chain. If what the area really lacks is a grocery store, a gas station or a place for kids, say so. That is the gap a smart business will fill.')}
+        ${item('Rate the idea and the spot separately.','You might love a drive-thru chicken place but not next to the elementary school at pickup time. Plotline asks about the idea and the location as two different questions.')}
+        ${item('Stay anonymous.','No name, no address. Four quick questions about where you live and how you get around, so results can show what nearby neighbors want compared with visitors.')}
+      </ul>
+      <a class="btn primary" href="#home">Weigh in on a building</a>
+    </section>
+    <section class="side">
+      <span class="label">For developers & business owners</span>
+      <h2>Know the demand before you build.</h2>
+      <ul class="points">
+        ${item('Stop guessing.','A coffee shop is the easy guess. If neighbors drive 15 minutes for groceries or gas, that is the real gap, and the business that fills it has customers on day one.')}
+        ${item('See who your customers are.','Split results by neighbors in walking distance, nearby towns, trail riders, families and time of day. For example: Windsor cyclists on Saturday mornings, and what they would spend.')}
+        ${item('Find problems while they are cheap to fix.','Comments surface traffic, parking and noise concerns early enough to design around them instead of fighting them at a hearing.')}
+        ${item('Show you listened.','Neutral, public results give council and neighbors evidence that the project reflects what the community asked for.')}
+      </ul>
+      <button type="button" class="btn ghost" data-act="to-contact">Run a survey for your property</button>
+    </section>
+  </div>
+  <section class="section">
+    <h2>How we keep it fair</h2>
+    <ul class="points fair">
+      ${item('Every result is public.','Whoever sponsors a survey cannot hide or edit the results.')}
+      ${item('Neutral questions.','Every building gets the same questions, and every idea is illustrated in the same style so no option looks better just because of the picture.')}
+      ${item('No personal information.','We never ask for names or addresses. Comments are published without who wrote them.')}
+      ${item('Small groups are flagged.','Any filter with fewer than 10 people is marked as a hint, not a result.')}
+    </ul>
+  </section>
+  <section class="section" id="contact">
+    <div class="q">
+      <div class="qhead"><span class="label">For property owners, brokers & businesses</span><h2>Run a survey for your property</h2><p class="muted small">Tell us about the building or lot. We will get back to you about setting up a survey for it.</p></div>
+      <div class="field"><label class="lbl" for="c-name">Your name and company</label><input type="text" id="c-name" maxlength="120" autocomplete="name"></div>
+      <div class="field"><label class="lbl" for="c-contact">Email or phone</label><input type="text" id="c-contact" maxlength="120" autocomplete="email"></div>
+      <div class="field"><label class="lbl" for="c-prop">Property address</label><input type="text" id="c-prop" maxlength="160" placeholder="e.g. 4100 Main St, Timnath"></div>
+      <div class="field"><label class="lbl" for="c-msg">What are you considering? <em>Optional</em></label><textarea id="c-msg" maxlength="800" placeholder="Leasing to a restaurant, selling the lot, opening a business\u2026"></textarea></div>
+      <p class="error" id="c-error" role="alert" hidden></p>
+      <div class="row"><button type="button" class="btn primary" data-act="inquiry">Send</button></div>
+    </div>
+  </section>`;
+}
+
 // ---------- render ----------
 function render(){
   const r=route();
   if(r.view==='survey')app.innerHTML=viewSurvey(r.b);
   else if(r.view==='results')app.innerHTML=viewResults(r.b);
+  else if(r.view==='about')app.innerHTML=viewAbout();
   else app.innerHTML=viewHome();
   setStatus();
+  const nh=document.getElementById('nav-home'),na=document.getElementById('nav-about');
+  if(nh&&na){nh.classList.toggle('on',r.view!=='about');na.classList.toggle('on',r.view==='about')}
   if(r.view==='home')initMap(); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
 }
 let lastRoute='';
@@ -691,6 +764,17 @@ document.addEventListener('click',e=>{
     render();
   }
   else if(a==='locate'){locate(v)}
+  else if(a==='to-contact'){const c=document.getElementById('contact');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
+  else if(a==='inquiry'){
+    const val=id=>(document.getElementById(id)||{}).value||'';
+    const name=val('c-name').trim(),contact=val('c-contact').trim(),prop=val('c-prop').trim(),msg=val('c-msg').trim();
+    const err=$('#c-error');
+    if(!contact||!prop){err.textContent='Please add a way to reach you and the property address.';err.hidden=false;return}
+    err.hidden=true; act.disabled=true; act.textContent='Sending\u2026';
+    const text='[Property inquiry] Name: '+name+' | Contact: '+contact+' | Property: '+prop+' | Message: '+msg;
+    gs('submitFeedback',{rid:getRid(),text:text.slice(0,1500)}).then(()=>{act.textContent='Sent';toast('Thanks! We will be in touch.');['c-name','c-contact','c-prop','c-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
+      .catch(()=>{act.disabled=false;act.textContent='Send';toast('Could not send. Please try again.')});
+  }
   else if(a==='edit-profile'){S.editProfile=true;S.touched=true;render()}
   else if(a==='feedback'){
     const ta=$('#fb'); const text=(ta&&ta.value||'').trim();
