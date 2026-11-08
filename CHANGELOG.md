@@ -2,6 +2,13 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.9.0 · 2026-11-08 · Share kit
+
+- **New:** Share button on every site and results page, with a copy-ready link.
+- **New:** QR code for every site and area, ready to download for posts, flyers and signs.
+- **New:** Printable flyer for every site, sized for letter paper, for storefront windows, coffee shop boards and mailboxes.
+- **New:** Share this area button on each area page.
+
 ## v0.8.0 · 2026-11-07 · Release notes
 
 - **New:** This page. Every change to Plotline is listed here, newest first.

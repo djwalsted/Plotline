@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one narrow civic column (phone-first), sticky town bar, cards only for buildings. */
@@ -237,6 +238,33 @@ h1 .pin-sm b{font-size:16px}
 .rel-improved{background:var(--sun-soft);color:var(--warn)}
 .rel-fixed{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
 .foot-ver{color:var(--muted)!important;font-weight:500!important;font-size:.8rem}
+dialog.share{border:1px solid var(--line);border-radius:16px;padding:0;max-width:min(520px,calc(100vw - 32px));width:100%;background:var(--surface);color:var(--ink)}
+dialog.share::backdrop{background:rgba(10,20,20,.45)}
+.share-in{padding:18px;display:grid;gap:14px}
+.share-in h2{font-size:1.2rem}
+.copyrow{display:flex;gap:8px}.copyrow input{min-width:0;flex:1}
+.qrbox{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.qr{background:#fff;padding:8px;border-radius:8px;border:1px solid var(--line);line-height:0}
+.qr img,.qr canvas{display:block;max-width:100%}
+.qr-side{display:grid;gap:6px;flex:1 1 180px;min-width:0}
+.flyer-tools{display:grid;gap:10px;padding-block:8px 16px}
+.flyer{background:#fff;color:#18282A;border:1px solid var(--line);border-radius:14px;padding:28px 24px;display:grid;gap:16px;max-width:640px;margin:0 auto}
+.flyer h1{font-size:clamp(1.8rem,6vw,2.6rem);color:#18282A}
+.flyer .label{color:#5A6B69}
+.flyer-art{border-radius:10px;overflow:hidden;border:1px solid #D6DFDA}
+.flyer-art img{display:block;width:100%;height:auto}
+.flyer-idea{font-size:1.1rem}
+.flyer-qr{display:flex;flex-wrap:wrap;gap:18px;align-items:center;border-top:2px solid #18282A;padding-top:16px}
+.flyer-qr > div:last-child{flex:1 1 200px;display:grid;gap:4px}
+.flyer-cta{font-family:var(--display);font-weight:800;font-size:1.6rem}
+.flyer-foot{font-size:.85rem;color:#5A6B69;border-top:1px solid #D6DFDA;padding-top:10px}
+@media print{
+  body{background:#fff!important}
+  .bar,.foot,.no-print,.toast,body::before{display:none!important}
+  .wrap{max-width:none;padding:0}
+  .flyer{border:0;border-radius:0;padding:0;max-width:none}
+  @page{size:letter;margin:0.5in}
+}
 </style>
 </head>
 <body>
@@ -257,6 +285,7 @@ h1 .pin-sm b{font-size:16px}
   <span class="muted">We sell what the neighborhood thinks. Never who you are.</span>
   <a class="foot-ver num" id="foot-ver" href="#release-notes">Version</a>
 </div></footer>
+<dialog class="share" id="share-dlg" aria-labelledby="share-title"></dialog>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -427,6 +456,11 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.9.0', date:'2026-11-08', title:'Share kit', items:[
+    ['new','Share button on every site and results page, with a copy-ready link.'],
+    ['new','QR code for every site and area, ready to download for posts, flyers and signs.'],
+    ['new','Printable flyer for every site, sized for letter paper, for storefront windows, coffee shop boards and mailboxes.'],
+    ['new','Share this area button on each area page.']]},
   {v:'0.8.0', date:'2026-11-07', title:'Release notes', items:[
     ['new','This page. Every change to Plotline is listed here, newest first.'],
     ['new','The current version number is shown in the footer.']]},
@@ -591,6 +625,7 @@ function route(){
   const h=(location.hash||'').replace('#','');
   for(const b of BUILDINGS){ if(h===b.slug)return {view:'survey',b}; if(h===b.slug+'-results')return {view:'results',b}; }
   for(const A of AREAS){ if(h==='area-'+A.slug)return {view:'area',area:A}; }
+  for(const b of BUILDINGS){ if(h==='flyer-'+b.slug)return {view:'flyer',b}; }
   if(h==='about')return {view:'about'};
   if(h==='join')return {view:'join'};
   if(h==='developers')return {view:'developers'};
@@ -700,7 +735,7 @@ function siteCard(b){
     <div class="meta"><span>${esc(b.size)}</span><span>${esc(b.price)}</span><span>${esc(b.notes)}</span></div>
     <p class="small muted"><b>What could go here?</b> ${esc(b.concept.blurb)} ${IMG[b.id]?'The picture is an illustration of one possible idea, not a real plan.':'This is one possible idea, not a real plan.'}</p>
     <div class="wish">${t?`<span class="muted small">Top wish so far</span><b>${esc(LBL.cats[t[0]])}</b><span class="muted small num">${pct(t[1],st.nd)}% of ${st.nd}</span>`:`<span class="muted small">No answers yet. Be the first.</span>`}</div>
-    <div class="row"><a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a><a class="btn ghost" href="#${b.slug}-results">See results</a><button type="button" class="btn ghost" data-act="locate" data-v="${b.id}">Show on map</button></div>
+    <div class="row"><a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a><a class="btn ghost" href="#${b.slug}-results">See results</a><button type="button" class="btn ghost" data-act="locate" data-v="${b.id}">Show on map</button><button type="button" class="btn ghost" data-act="share" data-v="${b.id}">Share</button></div>
   </div></article>`;
 }
 function viewHome(){
@@ -750,6 +785,7 @@ function viewArea(A){
     <span class="label">${esc(A.town)} · Area</span>
     <h1>${esc(A.name)}</h1>
     <p>${esc(A.blurb)} Tell buyers and future business owners what you would actually spend money on.</p>
+    <div class="row"><button type="button" class="btn ghost" data-act="share-area" data-v="${A.id}">Share this area</button></div>
   </section>
   <section class="section">
     <h2>Map</h2>
@@ -861,7 +897,7 @@ function viewResults(b){
   return `<a class="back" href="#area-${A.slug}">← ${esc(A.name)}</a>
   <section class="bhead"><span class="label">Public results · ${esc(A.name)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1></section>
   <div style="display:grid;gap:14px">
-    <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a></div>
+    <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<span class="row"><a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a><button type="button" class="btn ghost" data-act="share" data-v="${b.id}" style="padding:9px 12px">Share</button></span></div>
     ${demoBanner()}
     <div class="filters">
       <span class="label">Quick views</span>
@@ -1131,6 +1167,47 @@ function viewReleases(){
   </article>`).join('')}</div>`;
 }
 
+// ---------- share kit ----------
+const BASE_URL=location.origin+location.pathname;
+const linkFor=(hash,src)=>BASE_URL+'?src='+encodeURIComponent(src)+'#'+hash;
+function qrInto(el,text,size){
+  el.innerHTML='';
+  if(!window.QRCode){el.innerHTML='<p class="small muted">QR code could not load. Use the link instead.</p>';return}
+  new QRCode(el,{text,width:size,height:size,colorDark:'#18282A',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});
+}
+function openShare(kind,id){
+  const dlg=document.getElementById('share-dlg'); if(!dlg)return;
+  let title,hash,flyer='';
+  if(kind==='site'){const b=BUILDINGS.find(x=>x.id===id); if(!b)return; title=b.name; hash=b.slug; flyer=`<a class="btn primary" href="#flyer-${b.slug}" data-act="close-share">Print a flyer</a>`;}
+  else {const A=AREA[id]; if(!A)return; title=A.name; hash='area-'+A.slug;}
+  const link=linkFor(hash,'share'), qrLink=linkFor(hash,'qr');
+  dlg.innerHTML=`<div class="share-in">
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 id="share-title">Share ${esc(title)}</h2><button type="button" class="btn ghost" data-act="close-share" aria-label="Close">Close</button></div>
+    <p class="small muted">Send neighbors straight to this ${kind==='site'?'survey':'area'}. It takes about 2 minutes and never asks for a name.</p>
+    <div class="field"><label class="lbl" for="share-link">Link</label><div class="copyrow"><input type="text" id="share-link" readonly value="${esc(link)}"><button type="button" class="btn primary" data-act="copy-link">Copy</button></div></div>
+    ${navigator.share?'<button type="button" class="btn ghost" data-act="native-share">Share with an app…</button>':''}
+    <div class="qrbox"><div id="share-qr" class="qr"></div><div class="qr-side"><b>QR code</b><span class="small muted">Point a phone camera at it, or save it for a post, flyer or sign.</span><a class="btn ghost" id="qr-dl" download="plotline-${esc(hash)}-qr.png" href="#">Download QR code</a></div></div>
+    ${flyer?`<div class="row">${flyer}<span class="small muted">A printable page for a storefront window, coffee shop board or mailbox.</span></div>`:''}
+  </div>`;
+  qrInto(document.getElementById('share-qr'),qrLink,180);
+  setTimeout(()=>{const c=dlg.querySelector('#share-qr canvas'),a=document.getElementById('qr-dl');if(c&&a)a.href=c.toDataURL('image/png')},150);
+  dlg.dataset.title=title; dlg.dataset.link=link;
+  if(dlg.showModal)dlg.showModal(); else dlg.setAttribute('open','');
+}
+function closeShare(){const d=document.getElementById('share-dlg');if(d){if(d.close)d.close();else d.removeAttribute('open')}}
+function viewFlyer(b){
+  const A=AREA[b.area], link=linkFor(b.slug,'flyer');
+  return `<div class="no-print flyer-tools"><a class="back" href="#${b.slug}">← Back to ${esc(b.name)}</a><div class="row"><button type="button" class="btn primary" data-act="print">Print this flyer</button><span class="small muted">Letter size. Use your browser’s print dialog to save as PDF.</span></div></div>
+  <article class="flyer">
+    <span class="label">${esc(A.name)} · ${esc(A.town)}</span>
+    <h1>What should go at ${esc(b.name.split(' · ')[0])}?</h1>
+    <div class="flyer-art">${art(b)}</div>
+    <p class="flyer-idea">One idea: <b>${esc(b.concept.title)}</b>. Love it? Hate it? Want something else? Tell the people deciding.</p>
+    <div class="flyer-qr"><div id="flyer-qr" class="qr"></div><div><p class="flyer-cta">Scan to weigh in</p><p>About 2 minutes. No name or address needed. Results are public.</p><p class="small">${esc(BASE_URL.replace(/^https?:\/\//,''))}</p></div></div>
+    <p class="flyer-foot">Plotline · We sell what the neighborhood thinks. Never who you are.</p>
+  </article>`;
+}
+
 // ---------- render ----------
 function render(){
   const r=route();
@@ -1141,11 +1218,14 @@ function render(){
   else if(r.view==='developers')app.innerHTML=viewDevelopers();
   else if(r.view==='privacy')app.innerHTML=viewPrivacy();
   else if(r.view==='releases')app.innerHTML=viewReleases();
+  else if(r.view==='flyer')app.innerHTML=viewFlyer(r.b);
   else if(r.view==='area')app.innerHTML=viewArea(r.area);
   else app.innerHTML=viewHome();
   setStatus();
   const navKey=r.view==='about'||r.view==='developers'||r.view==='privacy'||r.view==='releases'?'about':r.view==='join'?'join':'home';
   document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===navKey));
+  document.body.classList.toggle('flyer-mode',r.view==='flyer');
+  if(r.view==='flyer')setTimeout(()=>{const el=document.getElementById('flyer-qr');if(el)qrInto(el,linkFor(r.b.slug,'flyer'),220)},0);
   if(r.view==='home'||r.view==='area')initMap(r); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
 }
 let lastRoute='';
@@ -1183,6 +1263,17 @@ document.addEventListener('click',e=>{
     render();
   }
   else if(a==='locate'){locate(v)}
+  else if(a==='share'){openShare('site',v)}
+  else if(a==='share-area'){openShare('area',v)}
+  else if(a==='close-share'){closeShare()}
+  else if(a==='print'){window.print()}
+  else if(a==='copy-link'){
+    const inp=document.getElementById('share-link'); const val=inp?inp.value:'';
+    const ok=()=>{act.textContent='Copied';toast('Link copied.')};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(val).then(ok).catch(()=>{inp.select();toast('Press Ctrl+C to copy.')});
+    else {inp.select();toast('Press Ctrl+C to copy.')}
+  }
+  else if(a==='native-share'){const d=document.getElementById('share-dlg');navigator.share({title:'Plotline: '+d.dataset.title,text:'What should go here? Weigh in (about 2 minutes, no name needed).',url:d.dataset.link}).catch(()=>{})}
   else if(a==='to-request'){const c=document.getElementById('request');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
   else if(a==='od-request'){
     const val=id=>((document.getElementById(id)||{}).value||'').trim();
