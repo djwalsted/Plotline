@@ -2,6 +2,11 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.10.0 · 2026-11-08 · How did you hear about Plotline?
+
+- **New:** An optional question on your first survey: how you heard about Plotline. It is asked once and never shown publicly.
+- **Improved:** Shared links, QR codes and flyers fill in the answer for you, so we can tell which ways of reaching neighbors work best.
+
 ## v0.9.0 · 2026-11-08 · Share kit
 
 - **New:** Share button on every site and results page, with a copy-ready link.

@@ -354,6 +354,9 @@ const DIST_LABEL={walk:'Walking distance',near:'Under 2 mi',mid:'2–6 mi',far:'
 const LEGACY_DIST={walk:'walk',bike:'near',drive:'mid',town:'mid',far:'far'};
 const MODES=[['walk','Walk'],['bike','Bike'],['car','Car'],['cart','Golf cart / e-bike']];
 const TRAIL=[['weekly','Weekly or more'],['monthly','A few times a month'],['never','Rarely or never']];
+const HEARD=[['facebook','Facebook group'],['nextdoor','Nextdoor'],['flyer','Flyer or QR code'],['friend','Friend or neighbor'],['plotline','Email or text from Plotline'],['other','Somewhere else']];
+const SRC_TO_HEARD={flyer:'flyer',qr:'flyer',share:'friend',fb:'facebook',facebook:'facebook',nd:'nextdoor',nextdoor:'nextdoor',email:'plotline',sms:'plotline',panel:'plotline'};
+const ARRIVED_SRC=(()=>{let v=null;try{v=new URLSearchParams(location.search).get('src');if(v){v=v.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,20);sessionStorage.setItem('plotline-src',v)}else v=sessionStorage.getItem('plotline-src')}catch(e){}return v||null})();
 const KIDS=[['yes','Yes'],['no','No'],['skip','Prefer not to say']];
 const BAND_LABEL={walk:'Under 0.5 mi',bike:'0.5–2 mi',drive:'2+ mi in Timnath',town:'Neighboring town',far:'Farther away'};
 const toMap = arr => Object.fromEntries(arr);
@@ -456,6 +459,9 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.10.0', date:'2026-11-08', title:'How did you hear about Plotline?', items:[
+    ['new','An optional question on your first survey: how you heard about Plotline. It is asked once and never shown publicly.'],
+    ['improved','Shared links, QR codes and flyers fill in the answer for you, so we can tell which ways of reaching neighbors work best.']]},
   {v:'0.9.0', date:'2026-11-08', title:'Share kit', items:[
     ['new','Share button on every site and results page, with a copy-ready link.'],
     ['new','QR code for every site and area, ready to download for posts, flyers and signs.'],
@@ -609,7 +615,7 @@ let saving=Promise.resolve();
 function save(quiet,b){
   saveLocal();
   if(!b)return Promise.resolve(false);
-  const payload={rid:getRid(),row:rowFor(b),data:JSON.stringify({building:b.id,profile:S.mine.profile,discovery:S.mine.discovery[b.id]||null,concept:S.mine.concepts[b.id]||null,at:S.mine.updatedAt})};
+  const payload={rid:getRid(),row:rowFor(b),data:JSON.stringify({building:b.id,profile:S.mine.profile,discovery:S.mine.discovery[b.id]||null,concept:S.mine.concepts[b.id]||null,heard:S.mine.heard||null,src:ARRIVED_SRC,at:S.mine.updatedAt})};
   saving=saving.then(()=>gs('submitAnswer',payload)).then(rows=>{
     if(Array.isArray(rows)){S.live=groupRows(rows);S.store='live'}
     setStatus(); return true;
@@ -807,7 +813,7 @@ function initDraft(b){
   const d=(S.mine.discovery||{})[b.id]||{}, c=(S.mine.concepts||{})[b.id]||{}, p=S.mine.profile||{};
   S.draft={picks:(d.picks||[]).slice(),writein:d.writein||'',
     concept:c.concept?String(c.concept):undefined,location:c.location?String(c.location):undefined,how:c.how,when:(c.when||[]).slice(),freq:c.freq,spend:c.spend,extras:(c.extras||[]).slice(),comment:c.comment||'',
-    town:p.town,dist:c.dist,modes:(p.modes||[]).slice(),trail:p.trail,kids:p.kids};
+    heard:S.mine.heard||SRC_TO_HEARD[ARRIVED_SRC]||undefined,town:p.town,dist:c.dist,modes:(p.modes||[]).slice(),trail:p.trail,kids:p.kids};
   S.draftFor=b.id; S.touched=false; S.editProfile=false;
 }
 function profileSummary(p){
@@ -848,7 +854,8 @@ function viewSurvey(b){
       <div class="field"><span class="lbl">How do you usually get around town? <em>Pick any</em></span>${chips('modes',MODES,{multi:true})}</div>
       <div class="field"><span class="lbl">How often do you use the Poudre River Trail?</span>${chips('trail',TRAIL)}</div>
       <div class="field"><span class="lbl">Kids at home? <em>Optional</em></span>${chips('kids',KIDS)}</div>
-    </div>`:`<div class="q"><div class="saved-profile"><span class="label">About you</span><span>${profileSummary(S.mine.profile)}</span><button type="button" class="btn ghost" data-act="edit-profile" style="padding:8px 12px">Edit</button></div></div>`}
+      ${S.mine.heard?'':`<div class="field"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}
+    </div>`:`<div class="q"><div class="saved-profile"><span class="label">About you</span><span>${profileSummary(S.mine.profile)}</span><button type="button" class="btn ghost" data-act="edit-profile" style="padding:8px 12px">Edit</button></div>${S.mine.heard?'':`<div class="field" style="margin-top:14px"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}</div>`}
     <div style="display:grid;gap:10px;margin-top:18px">
       <p class="error" id="form-error" role="alert" hidden></p>
       <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
@@ -1060,7 +1067,7 @@ function viewPrivacy(){
   <h3>When you answer a survey</h3>
   <ul>
     <li>Your answers: what you would like in a building or lot, your ratings of an idea and a location, how often you would visit, when, how you would get there, what you would spend, what would make it a must-stop, and any comment you choose to write.</li>
-    <li>A few questions about you, asked once: the town you live in, roughly how far you live from Main Street, how you usually get around, how often you use the Poudre River Trail, and, if you choose to answer, whether you have kids at home.</li>
+    <li>A few questions about you, asked once: the town you live in, roughly how far you live from Main Street, how you usually get around, how often you use the Poudre River Trail, and, if you choose to answer, whether you have kids at home and how you heard about Plotline. If you arrive from a shared link, QR code or flyer, we note which kind of link it was.</li>
     <li>A random respondent code created by your browser. It lets you update your answers and keeps one person from being counted twice. It is not linked to your name or contact details.</li>
   </ul>
   <p>Surveys never ask for your name, street address, email or phone number.</p>
@@ -1330,6 +1337,7 @@ document.addEventListener('submit',async e=>{
   S.mine.discovery[b.id]={picks:d.picks.slice(),writein:d.writein.trim(),at:now};
   S.mine.concepts[b.id]={concept:+d.concept,location:+d.location,dist:d.dist,how:d.how||null,when:d.when.slice(),freq:d.freq||null,spend:d.spend||null,extras:d.extras.slice(),comment:d.comment.trim(),at:now};
   if(needProfile){S.mine.profile={town:d.town,modes:d.modes.slice(),trail:d.trail,kids:d.kids||null}}
+  if(d.heard&&!S.mine.heard)S.mine.heard=d.heard;
   S.mine.updatedAt=now;
   const btn=e.target.querySelector('button[type=submit]'); if(btn){btn.disabled=true;btn.textContent='Saving…'}
   const shared=await save(false,b);
