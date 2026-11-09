@@ -281,6 +281,7 @@ dialog.share::backdrop{background:rgba(10,20,20,.45)}
 .stage-banner{background:#7A2E8E;color:#fff;font-size:.88rem;padding:10px max(16px,env(safe-area-inset-left,0px));text-align:center}
 .stage-banner a{color:#fff;font-weight:700}
 @media print{.stage-banner{display:none}}
+.sponsor-q{border:1.5px dashed var(--line);border-radius:10px;padding:12px}
 </style>
 </head>
 <body>
@@ -509,6 +510,9 @@ let DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.16.0', date:'2026-11-09', title:'Questions from project sponsors', items:[
+    ['new','A site can include one optional question from its sponsor, such as which grocery store residents would choose. It is clearly labeled as the sponsor\u2019s question.'],
+    ['new','Answers to sponsor questions with set choices appear on the results page and in the sponsor report.']]},
   {v:'0.15.0', date:'2026-11-09', title:'Areas and sites managed from the sheet', items:[
     ['new','Areas and sites can now be added, edited, drafted or closed without changing the website code.'],
     ['new','Sites can be closed for feedback while their results stay public.'],
@@ -606,6 +610,16 @@ function matches(p,b,f){
   if(f.weekend&&!(c&&(c.when||[]).includes('wkndam')))return false;
   if(f.fn&&!f.fn(p,b))return false;
   return true;
+}
+function customStats(b){
+  if(!b.custom||!b.custom.choices.length)return null;
+  const m={};let n=0;
+  dataset().forEach(p=>{const c=(p.concepts||{})[b.id];if(c&&c.custom&&c.custom.q===b.custom.q&&c.custom.a){m[c.custom.a]=(m[c.custom.a]||0)+1;n++}});
+  return {m,n,opts:b.custom.choices.map(x=>[x,x])};
+}
+function customPanel(b,tag){
+  const cs=customStats(b); if(!cs)return '';
+  return `<${tag==='rep'?'section class="rep-sec"':'div class="panel"'}><span class="label">Question from the project sponsor</span><h3>${esc(b.custom.q)}</h3><p class="small muted">${cs.n} answered</p>${cs.n?bars(cs.m,cs.opts,cs.n,{sort:true}):''}</${tag==='rep'?'section':'div'}>`;
 }
 function stats(b,f){
   const people=dataset().filter(p=>((p.discovery||{})[b.id]||(p.concepts||{})[b.id])&&matches(p,b,f));
@@ -897,7 +911,7 @@ function viewArea(A){
 function initDraft(b){
   const d=(S.mine.discovery||{})[b.id]||{}, c=(S.mine.concepts||{})[b.id]||{}, p=S.mine.profile||{};
   S.draft={picks:(d.picks||[]).slice(),writein:d.writein||'',
-    concept:c.concept?String(c.concept):undefined,location:c.location?String(c.location):undefined,how:c.how,when:(c.when||[]).slice(),freq:c.freq,spend:c.spend,extras:(c.extras||[]).slice(),comment:c.comment||'',
+    custom:c.custom&&c.custom.a||undefined,concept:c.concept?String(c.concept):undefined,location:c.location?String(c.location):undefined,how:c.how,when:(c.when||[]).slice(),freq:c.freq,spend:c.spend,extras:(c.extras||[]).slice(),comment:c.comment||'',
     heard:S.mine.heard||SRC_TO_HEARD[ARRIVED_SRC]||undefined,town:p.town,dist:c.dist,modes:(p.modes||[]).slice(),trail:p.trail,kids:p.kids};
   S.draftFor=b.id; S.touched=false; S.editProfile=false; S.formStart=Date.now();
 }
@@ -932,6 +946,7 @@ function viewSurvey(b){
       <div class="field"><span class="lbl">How would you get there?</span>${chips('how',HOW)}</div>
       <div class="field"><span class="lbl">What would you spend on a typical visit?</span>${chips('spend',SPEND)}</div>
       <div class="field"><span class="lbl">What would make it a must-stop? <em>Pick any</em></span>${chips('extras',EXTRAS,{multi:true})}</div>
+      ${b.custom?`<div class="field sponsor-q"><span class="label">A question from the project sponsor</span>${b.custom.choices.length?`<span class="lbl">${esc(b.custom.q)} <em>Optional</em></span>${chips('custom',b.custom.choices.map(c=>[c,c]))}`:`<label class="lbl" for="custom-text">${esc(b.custom.q)} <em>Optional</em></label><input type="text" id="custom-text" data-field="custom" maxlength="200" value="${esc(d.custom||'')}">`}</div>`:''}
       <div class="field"><label class="lbl" for="comment">Anything the buyer should hear? <em>Optional. Published without your name after a quick review. Please leave out names and personal details.</em></label><textarea id="comment" data-field="comment" maxlength="500" placeholder="Love the idea, but parking at school pickup is already tough…">${esc(d.comment)}</textarea></div>
     </div>
     ${needProfile?`<div class="q">
@@ -985,6 +1000,7 @@ function viewResults(b){
       </div>
       <div><p class="label" style="margin-bottom:8px">Must-haves</p>${bars(st.extras,EXTRAS,st.nc,{sort:true,limit:5})}</div>
     </div>
+    ${customPanel(b)}
     <div class="panel"><h3>What people said</h3><p class="small muted">Comments appear after a quick review, without names.</p>${quotes||'<p class="muted small">No reviewed comments from this group yet.</p>'}</div>`;
   }
   const A=AREA[b.area];
@@ -1353,6 +1369,7 @@ function viewReport(b){
     <div><h2>When they would go</h2>${bars(st.when,WHEN,st.nc)}</div>
     <div><h2>How they would get there</h2>${bars(st.how,HOW,st.nc)}<h2 style="margin-top:14px">How often</h2>${bars(st.freq,FREQ,st.nc)}</div>
   </section>
+  ${customPanel(b,'rep')}
   <section class="rep-sec"><h2>What residents said</h2>${quotes?`<ul class="quotes">${quotes}</ul>`:'<p class="muted small">No reviewed comments yet.</p>'}</section>
   ${reportMethods()}`;
 }
@@ -1493,7 +1510,8 @@ document.addEventListener('submit',async e=>{
   const now=Date.now();
   S.meta={hp:hpVal('hp-survey'),elapsed:now-(S.formStart||now),update:!!(S.mine.discovery[b.id]||S.mine.concepts[b.id])};
   S.mine.discovery[b.id]={picks:d.picks.slice(),writein:d.writein.trim(),at:now};
-  S.mine.concepts[b.id]={concept:+d.concept,location:+d.location,dist:d.dist,how:d.how||null,when:d.when.slice(),freq:d.freq||null,spend:d.spend||null,extras:d.extras.slice(),comment:d.comment.trim(),at:now};
+  const customAns=b.custom&&d.custom?{q:b.custom.q,a:String(d.custom).trim().slice(0,200)}:null;
+  S.mine.concepts[b.id]={custom:customAns,concept:+d.concept,location:+d.location,dist:d.dist,how:d.how||null,when:d.when.slice(),freq:d.freq||null,spend:d.spend||null,extras:d.extras.slice(),comment:d.comment.trim(),at:now};
   if(needProfile){S.mine.profile={town:d.town,modes:d.modes.slice(),trail:d.trail,kids:d.kids||null}}
   if(d.heard&&!S.mine.heard)S.mine.heard=d.heard;
   S.mine.updatedAt=now;

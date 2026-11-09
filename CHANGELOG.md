@@ -2,6 +2,11 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.16.0 · 2026-11-09 · Questions from project sponsors
+
+- **New:** A site can include one optional question from its sponsor, such as which grocery store residents would choose. It is clearly labeled as the sponsor’s question.
+- **New:** Answers to sponsor questions with set choices appear on the results page and in the sponsor report.
+
 ## v0.15.0 · 2026-11-09 · Areas and sites managed from the sheet
 
 - **New:** Areas and sites can now be added, edited, drafted or closed without changing the website code.
