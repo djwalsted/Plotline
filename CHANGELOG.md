@@ -2,6 +2,11 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.17.0 · 2026-11-09 · Email invitations
+
+- **New:** People who signed up to be notified can now be emailed a survey invitation for a site near them, filtered by town or ZIP code.
+- **New:** Every invitation includes a way to unsubscribe, and invitation links are tagged so we know which surveys email brings in.
+
 ## v0.16.0 · 2026-11-09 · Questions from project sponsors
 
 - **New:** A site can include one optional question from its sponsor, such as which grocery store residents would choose. It is clearly labeled as the sponsor’s question.
