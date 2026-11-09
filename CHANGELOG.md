@@ -2,6 +2,12 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.12.0 · 2026-11-09 · Spam protection
+
+- **New:** Every form has a hidden trap that only automated bots fill in. Those submissions are quietly discarded.
+- **New:** Surveys submitted faster than a person could read them are discarded.
+- **New:** The Plotline team is alerted when a site suddenly gets an unusual burst of answers.
+
 ## v0.11.0 · 2026-11-09 · Comment review
 
 - **New:** Comments are reviewed before they are published, to keep names and personal details off the site.

@@ -265,6 +265,7 @@ dialog.share::backdrop{background:rgba(10,20,20,.45)}
   .flyer{border:0;border-radius:0;padding:0;max-width:none}
   @page{size:letter;margin:0.5in}
 }
+.hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
 </style>
 </head>
 <body>
@@ -459,6 +460,10 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.12.0', date:'2026-11-09', title:'Spam protection', items:[
+    ['new','Every form has a hidden trap that only automated bots fill in. Those submissions are quietly discarded.'],
+    ['new','Surveys submitted faster than a person could read them are discarded.'],
+    ['new','The Plotline team is alerted when a site suddenly gets an unusual burst of answers.']]},
   {v:'0.11.0', date:'2026-11-09', title:'Comment review', items:[
     ['new','Comments are reviewed before they are published, to keep names and personal details off the site.'],
     ['improved','Reviewers can remove a name from a comment and publish the rest.'],
@@ -619,7 +624,7 @@ let saving=Promise.resolve();
 function save(quiet,b){
   saveLocal();
   if(!b)return Promise.resolve(false);
-  const payload={rid:getRid(),row:rowFor(b),data:JSON.stringify({building:b.id,profile:S.mine.profile,discovery:S.mine.discovery[b.id]||null,concept:S.mine.concepts[b.id]||null,heard:S.mine.heard||null,src:ARRIVED_SRC,at:S.mine.updatedAt})};
+  const payload={rid:getRid(),row:rowFor(b),data:JSON.stringify({building:b.id,profile:S.mine.profile,discovery:S.mine.discovery[b.id]||null,concept:S.mine.concepts[b.id]||null,heard:S.mine.heard||null,src:ARRIVED_SRC,at:S.mine.updatedAt}),...(S.meta||{})};
   saving=saving.then(()=>gs('submitAnswer',payload)).then(rows=>{
     if(Array.isArray(rows)){S.live=groupRows(rows);S.store='live'}
     setStatus(); return true;
@@ -818,7 +823,7 @@ function initDraft(b){
   S.draft={picks:(d.picks||[]).slice(),writein:d.writein||'',
     concept:c.concept?String(c.concept):undefined,location:c.location?String(c.location):undefined,how:c.how,when:(c.when||[]).slice(),freq:c.freq,spend:c.spend,extras:(c.extras||[]).slice(),comment:c.comment||'',
     heard:S.mine.heard||SRC_TO_HEARD[ARRIVED_SRC]||undefined,town:p.town,dist:c.dist,modes:(p.modes||[]).slice(),trail:p.trail,kids:p.kids};
-  S.draftFor=b.id; S.touched=false; S.editProfile=false;
+  S.draftFor=b.id; S.touched=false; S.editProfile=false; S.formStart=Date.now();
 }
 function profileSummary(p){
   const bits=[LBL.towns[p.town]||'',p.trail==='weekly'?'Trail weekly':p.trail==='monthly'?'Trail monthly':'',p.kids==='yes'?'Kids at home':''].filter(Boolean);
@@ -861,6 +866,7 @@ function viewSurvey(b){
       ${S.mine.heard?'':`<div class="field"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}
     </div>`:`<div class="q"><div class="saved-profile"><span class="label">About you</span><span>${profileSummary(S.mine.profile)}</span><button type="button" class="btn ghost" data-act="edit-profile" style="padding:8px 12px">Edit</button></div>${S.mine.heard?'':`<div class="field" style="margin-top:14px"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}</div>`}
     <div style="display:grid;gap:10px;margin-top:18px">
+      <div class="hp" aria-hidden="true"><label for="hp-survey">Leave this field empty</label><input type="text" id="hp-survey" name="hp-survey" tabindex="-1" autocomplete="off"></div>
       <p class="error" id="form-error" role="alert" hidden></p>
       <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
       <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public. Comments are reviewed, then published without who wrote them. Groups smaller than 10 people are flagged as too small to trust. <a href="#privacy">Privacy policy</a></p>
@@ -922,6 +928,7 @@ function viewResults(b){
       <h3>What do you think of this idea?</h3>
       <p class="small muted">We are testing whether neighbors would use something like this. Was it easy? What was confusing? What would make you come back? Anonymous. <a href="#privacy">Privacy policy</a></p>
       <textarea id="fb" maxlength="1500" placeholder="Honest thoughts welcome…"></textarea>
+      <div class="hp" aria-hidden="true"><label for="hp-fb">Leave this field empty</label><input type="text" id="hp-fb" name="hp-fb" tabindex="-1" autocomplete="off"></div>
       <div class="row"><button type="button" class="btn primary" data-act="feedback">Send feedback</button></div>
     </div>
   </div>`;
@@ -992,6 +999,7 @@ function viewJoin(){
       <div class="field"><label class="lbl" for="j-town">Where do you live?</label><select id="j-town"><option value="">Choose one</option>${towns}</select></div>
       <div class="field"><label class="lbl" for="j-zip">ZIP code</label><input type="text" id="j-zip" inputmode="numeric" maxlength="5" placeholder="80547"></div>
       <div class="field"><label class="lbl" for="j-near">Nearest intersection <em>Optional. Not your address; it helps us send projects near you.</em></label><input type="text" id="j-near" maxlength="80" placeholder="e.g. Main St & 4th Ave"></div>
+      <div class="hp" aria-hidden="true"><label for="hp-join">Leave this field empty</label><input type="text" id="hp-join" name="hp-join" tabindex="-1" autocomplete="off"></div>
       <p class="error" id="j-error" role="alert" hidden></p>
       <div class="row"><button type="button" class="btn primary block" data-act="join">Notify me</button></div>
       <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> Your contact info is stored separately from your survey answers and is never sold or shared with developers or anyone else. We use it only to send you surveys. <a href="#privacy">Privacy policy</a></p>
@@ -1050,6 +1058,7 @@ function viewDevelopers(){
       <div class="field"><label class="lbl" for="r-msg">What are you considering?</label><textarea id="r-msg" maxlength="800" placeholder="A drive-thru restaurant, a grocery store, mixed-use with apartments\u2026"></textarea></div>
       <div class="field"><label class="lbl" for="r-reach">How many residents do you want to hear from?</label><select id="r-reach"><option>Not sure yet</option><option>Neighborhood (200+)</option><option>Town-wide (1,000+)</option><option>Regional (5,000+)</option></select></div>
       <div class="field"><label class="lbl" for="r-when">When do you need results?</label><select id="r-when"><option>Flexible</option><option>Within a month</option><option>Within 2\u20133 months</option><option>Before a scheduled hearing</option></select></div>
+      <div class="hp" aria-hidden="true"><label for="hp-request">Leave this field empty</label><input type="text" id="hp-request" name="hp-request" tabindex="-1" autocomplete="off"></div>
       <p class="error" id="r-error" role="alert" hidden></p>
       <div class="row"><button type="button" class="btn primary" data-act="od-request">Send request</button></div>
     </div>
@@ -1178,6 +1187,9 @@ function viewReleases(){
   </article>`).join('')}</div>`;
 }
 
+// ---------- spam traps ----------
+const hpVal=id=>((document.getElementById(id)||{}).value||'').trim();
+
 // ---------- share kit ----------
 const BASE_URL=location.origin+location.pathname;
 const linkFor=(hash,src)=>BASE_URL+'?src='+encodeURIComponent(src)+'#'+hash;
@@ -1292,7 +1304,7 @@ document.addEventListener('click',e=>{
     if(!val('r-contact')||!val('r-prop')){err.textContent='Please add a way to reach you and the project address.';err.hidden=false;return}
     err.hidden=true; act.disabled=true; act.textContent='Sending\u2026';
     const text='[On-demand request] Name: '+val('r-name')+' | Contact: '+val('r-contact')+' | Project: '+val('r-prop')+' | Reach: '+val('r-reach')+' | Timeline: '+val('r-when')+' | Details: '+val('r-msg');
-    gs('submitFeedback',{rid:'',text:text.slice(0,1500)}).then(()=>{act.textContent='Sent';toast('Thanks! We will get back to you with a plan.');['r-name','r-contact','r-prop','r-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
+    gs('submitFeedback',{rid:'',text:text.slice(0,1500),hp:hpVal('hp-request')}).then(()=>{act.textContent='Sent';toast('Thanks! We will get back to you with a plan.');['r-name','r-contact','r-prop','r-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
       .catch(()=>{act.disabled=false;act.textContent='Send request';toast('Could not send. Please try again.')});
   }
   else if(a==='join'){
@@ -1307,11 +1319,11 @@ document.addEventListener('click',e=>{
     if(!town)return fail('Please choose where you live.');
     if(zip&&!/^\d{5}$/.test(zip))return fail('ZIP code should be 5 digits.');
     err.hidden=true; act.disabled=true; act.textContent='Signing you up\u2026';
-    const payload={email,phone,sms,town:LBL.towns[town]||town,zip,near,source:'join page'};
+    const payload={email,phone,sms,town:LBL.towns[town]||town,zip,near,source:'join page',hp:hpVal('hp-join')};
     const done=()=>{const f=document.getElementById('join-form');if(f)f.innerHTML='<div class="qhead"><h2>You\u2019re on the list.</h2><p class="muted">We will reach out when there is a new project near you. Thanks for speaking up for your neighborhood.</p></div><div class="row"><a class="btn primary" href="#home">Weigh in on a building now</a></div>';toast('You are on the list.')};
     gs('joinPanel',payload).then(done).catch(()=>{
       const text='[Panel signup] Email: '+email+' | Mobile: '+phone+' | Text consent: '+(sms?'yes':'no')+' | Town: '+payload.town+' | ZIP: '+zip+' | Near: '+near;
-      gs('submitFeedback',{rid:'',text}).then(done).catch(()=>{act.disabled=false;act.textContent='Notify me';toast('Could not sign you up. Please try again.')});
+      gs('submitFeedback',{rid:'',text,hp:payload.hp}).then(done).catch(()=>{act.disabled=false;act.textContent='Notify me';toast('Could not sign you up. Please try again.')});
     });
   }
   else if(a==='edit-profile'){S.editProfile=true;S.touched=true;render()}
@@ -1319,7 +1331,7 @@ document.addEventListener('click',e=>{
     const ta=$('#fb'); const text=(ta&&ta.value||'').trim();
     if(!text){toast('Type a few words first.');return}
     act.disabled=true; act.textContent='Sending…';
-    gs('submitFeedback',{rid:'',text}).then(()=>{ta.value='';act.textContent='Thanks!';toast('Feedback sent. Thank you!')})
+    gs('submitFeedback',{rid:'',text,hp:hpVal('hp-fb')}).then(()=>{ta.value='';act.textContent='Thanks!';toast('Feedback sent. Thank you!')})
       .catch(()=>{act.disabled=false;act.textContent='Send feedback';toast('Could not send. Please try again.')});
   }
 });
@@ -1338,6 +1350,7 @@ document.addEventListener('submit',async e=>{
   const err=$('#form-error');
   if(missing.length){err.textContent='Almost there. Please answer: '+missing.join(', ')+'.';err.hidden=false;err.scrollIntoView({block:'center',behavior:'smooth'});return}
   const now=Date.now();
+  S.meta={hp:hpVal('hp-survey'),elapsed:now-(S.formStart||now),update:!!(S.mine.discovery[b.id]||S.mine.concepts[b.id])};
   S.mine.discovery[b.id]={picks:d.picks.slice(),writein:d.writein.trim(),at:now};
   S.mine.concepts[b.id]={concept:+d.concept,location:+d.location,dist:d.dist,how:d.how||null,when:d.when.slice(),freq:d.freq||null,spend:d.spend||null,extras:d.extras.slice(),comment:d.comment.trim(),at:now};
   if(needProfile){S.mine.profile={town:d.town,modes:d.modes.slice(),trail:d.trail,kids:d.kids||null}}
@@ -1345,6 +1358,7 @@ document.addEventListener('submit',async e=>{
   S.mine.updatedAt=now;
   const btn=e.target.querySelector('button[type=submit]'); if(btn){btn.disabled=true;btn.textContent='Saving…'}
   const shared=await save(false,b);
+  S.meta=null;
   S.mode='live'; S.touched=false; S.filters={who:'all',trail:false,bike:false,weekend:false,kids:false};
   const hadComment=!!d.comment.trim();
   toast(shared?(hadComment?'Thanks! Your answers are in. Your comment will appear after a quick review.':'Thanks! Your answers are in. Here are the results.'):'Thanks! Saved on this device. Here are the results.');
