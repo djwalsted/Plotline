@@ -266,6 +266,18 @@ dialog.share::backdrop{background:rgba(10,20,20,.45)}
   @page{size:letter;margin:0.5in}
 }
 .hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
+.rep-head{display:grid;gap:6px;padding-block:6px 4px;border-bottom:3px solid var(--ink);margin-bottom:8px}
+.rep-sec{padding-block:14px 4px;display:grid;gap:10px;break-inside:avoid}
+.rep-sec h2{font-size:1.15rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.tbl table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:520px}
+.tbl caption{text-align:left;padding:8px 10px;font-size:.8rem;color:var(--muted)}
+.tbl th,.tbl td{padding:8px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl thead th{font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-top:0}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr.small-n td,.tbl tr.small-n th{color:var(--muted)}
+.quotes{margin:0;padding-left:1.1em;display:grid;gap:8px}
+@media print{.rep-sec{padding-block:8px 2px}.tbl{border:0;overflow:visible}.tbl table{min-width:0}.kpis{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -460,6 +472,10 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.13.0', date:'2026-11-09', title:'Sponsor reports', items:[
+    ['new','Printable report for every site: summary, demand by distance and by town, top wishes, must-haves, timing, travel and reviewed comments.'],
+    ['new','Area report comparing every site in an area side by side.'],
+    ['new','Reports explain how to read the results, mark small groups, and say whether they show real or simulated data.']]},
   {v:'0.12.0', date:'2026-11-09', title:'Spam protection', items:[
     ['new','Every form has a hidden trap that only automated bots fill in. Those submissions are quietly discarded.'],
     ['new','Surveys submitted faster than a person could read them are discarded.'],
@@ -543,6 +559,7 @@ function matches(p,b,f){
   if(f.kids&&pr.kids!=='yes')return false;
   if(f.bike&&!(c&&c.how==='bike'))return false;
   if(f.weekend&&!(c&&(c.when||[]).includes('wkndam')))return false;
+  if(f.fn&&!f.fn(p,b))return false;
   return true;
 }
 function stats(b,f){
@@ -640,7 +657,8 @@ function route(){
   const h=(location.hash||'').replace('#','');
   for(const b of BUILDINGS){ if(h===b.slug)return {view:'survey',b}; if(h===b.slug+'-results')return {view:'results',b}; }
   for(const A of AREAS){ if(h==='area-'+A.slug)return {view:'area',area:A}; }
-  for(const b of BUILDINGS){ if(h==='flyer-'+b.slug)return {view:'flyer',b}; }
+  for(const b of BUILDINGS){ if(h==='flyer-'+b.slug)return {view:'flyer',b}; if(h==='report-'+b.slug)return {view:'report',b}; }
+  for(const A of AREAS){ if(h==='report-area-'+A.slug)return {view:'areareport',area:A}; }
   if(h==='about')return {view:'about'};
   if(h==='join')return {view:'join'};
   if(h==='developers')return {view:'developers'};
@@ -800,7 +818,7 @@ function viewArea(A){
     <span class="label">${esc(A.town)} · Area</span>
     <h1>${esc(A.name)}</h1>
     <p>${esc(A.blurb)} Tell buyers and future business owners what you would actually spend money on.</p>
-    <div class="row"><button type="button" class="btn ghost" data-act="share-area" data-v="${A.id}">Share this area</button></div>
+    <div class="row"><button type="button" class="btn ghost" data-act="share-area" data-v="${A.id}">Share this area</button><a class="btn ghost" href="#report-area-${A.slug}">Area report</a></div>
   </section>
   <section class="section">
     <h2>Map</h2>
@@ -914,7 +932,7 @@ function viewResults(b){
   return `<a class="back" href="#area-${A.slug}">← ${esc(A.name)}</a>
   <section class="bhead"><span class="label">Public results · ${esc(A.name)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1></section>
   <div style="display:grid;gap:14px">
-    <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<span class="row"><a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a><button type="button" class="btn ghost" data-act="share" data-v="${b.id}" style="padding:9px 12px">Share</button></span></div>
+    <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<span class="row"><a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a><button type="button" class="btn ghost" data-act="share" data-v="${b.id}" style="padding:9px 12px">Share</button><a class="btn ghost" href="#report-${b.slug}" style="padding:9px 12px">Sponsor report</a></span></div>
     ${demoBanner()}
     <div class="filters">
       <span class="label">Quick views</span>
@@ -1231,6 +1249,67 @@ function viewFlyer(b){
   </article>`;
 }
 
+// ---------- sponsor reports ----------
+const fmtN=(v,d=1)=>v==null?'–':v.toFixed(d);
+const fmtP=v=>v==null?'–':Math.round(v*100)+'%';
+const fmtD=v=>v==null?'–':'$'+v.toFixed(0);
+function segRow(label,st){const small=st.n>0&&st.n<10;return `<tr${small?' class="small-n"':''}><th scope="row">${esc(label)}${small?' *':''}</th><td class="num">${st.n}</td><td class="num">${fmtN(st.concept)}</td><td class="num">${fmtN(st.location)}</td><td class="num">${fmtP(st.weeklyPlus)}</td><td class="num">${fmtD(st.ticket)}</td></tr>`}
+function segTable(b,caption,segs){
+  return `<div class="tbl"><table><caption>${caption}</caption><thead><tr><th scope="col">Group</th><th scope="col">People</th><th scope="col">Idea (1–5)</th><th scope="col">Location (1–5)</th><th scope="col">Weekly or more</th><th scope="col">Spend / visit</th></tr></thead>
+  <tbody>${segs.map(([l,fn])=>segRow(l,stats(b,{who:'all',fn}))).join('')}</tbody></table></div>`;
+}
+function reportHead(kind,title,sub){
+  const live=activeMode()==='live';
+  return `<div class="no-print flyer-tools"><a class="back" href="javascript:history.back()">← Back</a><div class="row"><button type="button" class="btn primary" data-act="print">Print or save as PDF</button>${modeSwitch()}</div></div>
+  <header class="rep-head"><span class="label">Plotline resident report · ${kind}</span><h1>${esc(title)}</h1><p class="muted">${esc(sub)}</p>
+  <p class="small muted">Generated ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Plotline v${VERSION} · ${live?'Real responses':'<b>Simulated demo data, not real responses</b>'}</p></header>`;
+}
+function reportMethods(){
+  return `<section class="rep-sec"><h2>How to read this</h2><ul class="small">
+    <li>Residents chose to answer; results are not weighted to match the population, so treat them as strong signals, not a census.</li>
+    <li>Groups marked * have fewer than 10 people. Treat them as hints.</li>
+    <li>Residents are anonymous. Distance is self-reported: walking distance, under 2 miles, 2–6 miles, or farther.</li>
+    <li>Comments are reviewed and published without names.</li></ul>
+    <p class="small muted">Plotline · We sell what the neighborhood thinks. Never who you are.</p></section>`;
+}
+function viewReport(b){
+  const A=AREA[b.area], st=stats(b,{who:'all'});
+  const tp=topOf(st.picks), tx=topOf(st.extras);
+  const dist=[['Walking distance',(p,x)=>effDist(p,x)==='walk'],['Under 2 miles',(p,x)=>effDist(p,x)==='near'],['2–6 miles',(p,x)=>effDist(p,x)==='mid'],['6+ miles',(p,x)=>effDist(p,x)==='far'],['Everyone',null]];
+  const towns=TOWNS.map(([v,l])=>[l,p=>(p.profile||{}).town===v]).concat([['Everyone',null]]);
+  const quotes=st.comments.slice(0,20).map(q=>`<li>“${esc(q.text)}” <span class="muted">— ${esc([LBL.towns[q.p.town]||'',q.dist?DIST_LABEL[q.dist]+' away':'',`rated ${q.c.concept}/5`].filter(Boolean).join(', '))}</span></li>`).join('');
+  return reportHead('Site',b.name,`${A.name}, ${A.town} · ${b.tag} · ${b.size}${b.price?' · '+b.price:''}`)+`
+  <section class="rep-sec"><h2>Summary</h2>
+    <p class="headline">${st.n?`${st.n} ${st.n===1?'person':'people'} weighed in. ${st.nc?`The suggested idea, ${esc(b.concept.label)}, scored ${fmtN(st.concept)} out of 5; ${fmtP(st.weeklyPlus)} would go weekly or more.`:''}${tp?` Top wish for the site: ${esc(LBL.cats[tp[0]])}.`:''}`:'No responses yet.'}</p>
+    <div class="kpis"><div class="kpi"><b>${st.n}</b><span>people</span></div><div class="kpi"><b>${fmtN(st.concept)}</b><span>idea score (of 5)</span></div><div class="kpi"><b>${fmtN(st.location)}</b><span>location score (of 5)</span></div><div class="kpi"><b>${fmtD(st.ticket)}</b><span>typical spend per visit</span></div></div>
+  </section>
+  <section class="rep-sec"><h2>Demand by distance</h2>${segTable(b,'How far people live from the site',dist)}</section>
+  <section class="rep-sec"><h2>Demand by town</h2>${segTable(b,'Where people live',towns.filter(([l,fn])=>!fn||stats(b,{who:'all',fn}).n>0))}</section>
+  <section class="rep-sec grid2">
+    <div><h2>What people want here</h2><p class="small muted">${st.nd} answered, up to 3 picks each</p>${bars(st.picks,CATS,st.nd,{sort:true,limit:8})}${st.writeins.length?`<p class="small"><b>Write-ins:</b> ${st.writeins.slice(0,12).map(esc).join(', ')}</p>`:''}</div>
+    <div><h2>Must-haves for the idea</h2><p class="small muted">${st.nc} rated the idea</p>${bars(st.extras,EXTRAS,st.nc,{sort:true,limit:6})}${tx?`<p class="small">Top ask: <b>${esc(LBL.extras[tx[0]])}</b></p>`:''}</div>
+  </section>
+  <section class="rep-sec grid2">
+    <div><h2>When they would go</h2>${bars(st.when,WHEN,st.nc)}</div>
+    <div><h2>How they would get there</h2>${bars(st.how,HOW,st.nc)}<h2 style="margin-top:14px">How often</h2>${bars(st.freq,FREQ,st.nc)}</div>
+  </section>
+  <section class="rep-sec"><h2>What residents said</h2>${quotes?`<ul class="quotes">${quotes}</ul>`:'<p class="muted small">No reviewed comments yet.</p>'}</section>
+  ${reportMethods()}`;
+}
+function viewAreaReport(A){
+  const sites=sitesIn(A);
+  const rows=sites.map(b=>{const st=stats(b,{who:'all'}),tp=topOf(st.picks),tx=topOf(st.extras);return {b,st,tp,tx}});
+  const best=rows.filter(r=>r.st.nc>=3).sort((x,y)=>(y.st.concept||0)-(x.st.concept||0))[0];
+  return reportHead('Area',A.name,`${A.town} · ${sites.length} site${sites.length===1?'':'s'} · ${A.blurb}`)+`
+  <section class="rep-sec"><h2>Sites compared</h2>
+    ${best?`<p class="headline">Strongest idea so far: ${esc(best.b.concept.title)} at ${esc(best.b.name.split(' · ')[0])}, ${fmtN(best.st.concept)} out of 5 from ${best.st.nc} people.</p>`:''}
+    <div class="tbl"><table><thead><tr><th scope="col">Site</th><th scope="col">Suggested idea</th><th scope="col">People</th><th scope="col">Idea (1–5)</th><th scope="col">Location (1–5)</th><th scope="col">Weekly or more</th><th scope="col">Top wish</th><th scope="col">Top must-have</th></tr></thead>
+    <tbody>${rows.map(({b,st,tp,tx})=>`<tr${st.n>0&&st.n<10?' class="small-n"':''}><th scope="row">${esc(b.letter)} · ${esc(b.name.split(' · ')[0])}${st.n>0&&st.n<10?' *':''}</th><td>${esc(b.concept.title)}</td><td class="num">${st.n}</td><td class="num">${fmtN(st.concept)}</td><td class="num">${fmtN(st.location)}</td><td class="num">${fmtP(st.weeklyPlus)}</td><td>${tp?esc(LBL.cats[tp[0]]):'–'}</td><td>${tx?esc(LBL.extras[tx[0]]):'–'}</td></tr>`).join('')}</tbody></table></div>
+    <p class="small no-print">Full detail for each site: ${sites.map(b=>`<a href="#report-${b.slug}">${esc(b.letter)} · ${esc(b.name.split(' · ')[0])}</a>`).join(' · ')}</p>
+  </section>
+  ${reportMethods()}`;
+}
+
 // ---------- render ----------
 function render(){
   const r=route();
@@ -1242,6 +1321,8 @@ function render(){
   else if(r.view==='privacy')app.innerHTML=viewPrivacy();
   else if(r.view==='releases')app.innerHTML=viewReleases();
   else if(r.view==='flyer')app.innerHTML=viewFlyer(r.b);
+  else if(r.view==='report')app.innerHTML=viewReport(r.b);
+  else if(r.view==='areareport')app.innerHTML=viewAreaReport(r.area);
   else if(r.view==='area')app.innerHTML=viewArea(r.area);
   else app.innerHTML=viewHome();
   setStatus();

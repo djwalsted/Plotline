@@ -2,6 +2,12 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.13.0 · 2026-11-09 · Sponsor reports
+
+- **New:** Printable report for every site: summary, demand by distance and by town, top wishes, must-haves, timing, travel and reviewed comments.
+- **New:** Area report comparing every site in an area side by side.
+- **New:** Reports explain how to read the results, mark small groups, and say whether they show real or simulated data.
+
 ## v0.12.0 · 2026-11-09 · Spam protection
 
 - **New:** Every form has a hidden trap that only automated bots fill in. Those submissions are quietly discarded.
