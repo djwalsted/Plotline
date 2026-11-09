@@ -358,6 +358,30 @@ const ASSET_BASE=STAGE==='staging'?'../':'';
 const asset=u=>u&&!/^(https?:|data:|\/)/.test(u)?ASSET_BASE+u:u;
 const IMG={a:asset('img/a.jpg'),b:asset('img/b.jpg'),c:asset('img/c.jpg'),d:asset('img/d.jpg')};
 const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
+// Areas and sites can be managed in the Google Sheet (Areas and Sites tabs).
+// The built-in lists above are the fallback when the sheet cannot be reached.
+function applyConfig(cfg){
+  if(!cfg||!Array.isArray(cfg.areas)||!Array.isArray(cfg.sites)||!cfg.areas.length||!cfg.sites.length)return false;
+  const oldA=Object.fromEntries(AREAS.map(a=>[a.id,a])), oldB=Object.fromEntries(BUILDINGS.map(b=>[b.id,b]));
+  const areas=cfg.areas.map(a=>({id:a.id,slug:(oldA[a.id]&&oldA[a.id].slug)||a.slug||a.id,name:a.name,town:a.town,blurb:a.blurb,center:a.center,zoom:a.zoom||14,walk:!!a.walk,walkCenter:a.walkCenter||null,labelPos:a.labelPos||'s'}));
+  const ids=new Set(areas.map(a=>a.id));
+  const sites=cfg.sites.filter(x=>ids.has(x.area)).map(x=>{
+    const old=oldB[x.id]||{};
+    const title=x.idea||'An idea';
+    if(x.img)IMG[x.id]=asset(x.img); else if(!old.id)delete IMG[x.id];
+    return {id:x.id,letter:x.letter||'?',area:x.area,slug:x.slug||x.id,name:x.name,tag:x.tag,size:x.size,price:x.price,notes:x.notes,lat:x.lat,lng:x.lng,approx:!!x.approx,
+      facade:old.facade||(/land|lot|pad|acre/i.test(x.tag+' '+x.size)?'lot':'corner'),status:x.status||'open',
+      concept:{key:(old.concept&&old.concept.key)||title.toLowerCase().replace(/[^a-z0-9]+/g,'-'),mark:title[0].toUpperCase(),label:x.ideaLabel||('a '+title.toLowerCase()),title,blurb:x.ideaBlurb||''},
+      custom:x.customQ?{q:x.customQ,choices:x.customChoices||[]}:null,demo:old.demo};
+  });
+  if(!sites.length)return false;
+  const used=new Set(sites.map(x=>x.area));
+  areas.splice(0,areas.length,...areas.filter(a=>used.has(a.id)));
+  AREAS.splice(0,AREAS.length,...areas); BUILDINGS.splice(0,BUILDINGS.length,...sites);
+  Object.keys(AREA).forEach(k=>delete AREA[k]); areas.forEach(a=>AREA[a.id]=a);
+  DEMO=makeDemo(); S.fromSheet=true;
+  return true;
+}
 const sitesIn=A=>BUILDINGS.filter(b=>b.area===A.id);
 const GEO={"trail":[[[40.53727,-105.00013],[40.53724,-105.00013],[40.53722,-105.00015],[40.53712,-105.00024],[40.53701,-105.00037],[40.53659,-105.00076],[40.53648,-105.00091],[40.53637,-105.00101],[40.53629,-105.00103],[40.53623,-105.00102],[40.53616,-105.00102],[40.53609,-105.00099],[40.53603,-105.00094],[40.53584,-105.00063],[40.53571,-105.00054],[40.53541,-105.00041],[40.53516,-105.00032],[40.53487,-105.00023],[40.53453,-105.00017],[40.53421,-105.00016],[40.5341,-105.00015],[40.53297,-105.0002],[40.53216,-105.0001],[40.53178,-104.99999],[40.53149,-104.99987],[40.53149,-104.99977],[40.5314,-104.99955],[40.53132,-104.99929],[40.53131,-104.99913],[40.53128,-104.99891],[40.53124,-104.99873],[40.5312,-104.99858],[40.5311,-104.99837],[40.53103,-104.99822],[40.53101,-104.99798],[40.53096,-104.99759],[40.53092,-104.99743],[40.53085,-104.99729],[40.53081,-104.99717],[40.53079,-104.99702],[40.53079,-104.997],[40.53076,-104.99648],[40.53076,-104.99636],[40.53075,-104.99625],[40.53075,-104.99609],[40.53075,-104.99601],[40.53074,-104.99574],[40.53074,-104.99562],[40.53074,-104.99537],[40.53072,-104.99517],[40.53071,-104.99502],[40.53072,-104.99495],[40.53071,-104.99484],[40.53068,-104.9947],[40.53069,-104.99461],[40.53069,-104.99455],[40.53068,-104.99444],[40.53066,-104.99433],[40.53065,-104.99422],[40.53065,-104.99415],[40.53064,-104.99405],[40.53062,-104.99392],[40.5306,-104.99387],[40.5306,-104.99379],[40.53063,-104.99365],[40.53066,-104.99353],[40.53066,-104.9934],[40.53066,-104.99333],[40.53067,-104.99316],[40.53068,-104.99298],[40.53069,-104.99281],[40.53069,-104.99271],[40.5307,-104.99263],[40.53067,-104.99249],[40.53062,-104.99239],[40.53058,-104.99235],[40.53051,-104.99231],[40.53046,-104.99223],[40.53043,-104.99208],[40.5304,-104.99193],[40.53036,-104.99182],[40.53029,-104.99176],[40.53025,-104.99153],[40.53022,-104.99077],[40.5302,-104.99034],[40.53021,-104.98988],[40.53024,-104.98899],[40.53024,-104.9881],[40.53021,-104.98718],[40.5302,-104.98692],[40.53013,-104.98665],[40.53003,-104.98648],[40.52988,-104.98638],[40.52917,-104.98628],[40.52815,-104.98617],[40.52764,-104.98617],[40.52747,-104.98614],[40.52682,-104.98614],[40.52637,-104.98611],[40.52607,-104.98614],[40.52583,-104.98626],[40.52554,-104.98632],[40.52526,-104.9863],[40.52482,-104.98641],[40.52466,-104.98659],[40.52451,-104.9867],[40.52447,-104.98674],[40.5242,-104.98675],[40.52415,-104.98674],[40.52406,-104.9868],[40.52395,-104.9869],[40.52387,-104.98694],[40.52379,-104.98692],[40.5237,-104.98688],[40.52367,-104.98686],[40.52324,-104.98653],[40.52316,-104.9865],[40.52304,-104.98648],[40.52297,-104.98648],[40.52293,-104.98651],[40.52292,-104.98653],[40.52291,-104.98657],[40.52293,-104.98726],[40.52296,-104.98725],[40.52295,-104.9868]],[[40.55915,-105.02003],[40.55911,-105.01998],[40.55905,-105.0199],[40.55883,-105.01974],[40.55863,-105.01965],[40.55853,-105.01962],[40.55837,-105.01959],[40.5583,-105.01955],[40.55823,-105.01954],[40.55818,-105.01957],[40.55807,-105.01973],[40.558,-105.01976],[40.55795,-105.01977],[40.55785,-105.01971],[40.55777,-105.01966],[40.55772,-105.01966],[40.55768,-105.01967],[40.55754,-105.01974],[40.55743,-105.01977],[40.55722,-105.01979],[40.55714,-105.01979],[40.55698,-105.01976],[40.55686,-105.01976],[40.5567,-105.0198],[40.55659,-105.01981],[40.55644,-105.01981],[40.5564,-105.01979],[40.55632,-105.01971],[40.55624,-105.01968]],[[40.52295,-104.9868],[40.52293,-104.98554]],[[40.51935,-104.97671],[40.51924,-104.97706],[40.51921,-104.9772],[40.51919,-104.97739],[40.51919,-104.97746],[40.51919,-104.97753],[40.51918,-104.97778],[40.51915,-104.97799],[40.51909,-104.97815],[40.51907,-104.9782],[40.51896,-104.97844],[40.5189,-104.97852],[40.51886,-104.97865],[40.51888,-104.97874],[40.51895,-104.97884],[40.51925,-104.97915],[40.51934,-104.97926],[40.51944,-104.97936],[40.5197,-104.97954],[40.51987,-104.97966],[40.52019,-104.9798],[40.52041,-104.97993],[40.52068,-104.97999],[40.52088,-104.98009],[40.52099,-104.98018],[40.52102,-104.98014],[40.52104,-104.98021],[40.52107,-104.98028],[40.52115,-104.98035],[40.52137,-104.98048],[40.52194,-104.9807],[40.52213,-104.98085],[40.52224,-104.98094],[40.52229,-104.98111],[40.52229,-104.98142],[40.5223,-104.98158],[40.52225,-104.98183],[40.52211,-104.98223],[40.52215,-104.98235],[40.52232,-104.9824],[40.52274,-104.98244],[40.52284,-104.98249],[40.52284,-104.98316],[40.52286,-104.98358],[40.52286,-104.9837],[40.52292,-104.98513],[40.52293,-104.98554]],[[40.51584,-104.9651],[40.51585,-104.96508],[40.51588,-104.96495],[40.51594,-104.96468],[40.51599,-104.96445],[40.51599,-104.96427],[40.51597,-104.96405],[40.51594,-104.96384],[40.5159,-104.96362],[40.5159,-104.96347],[40.5159,-104.96331],[40.51584,-104.96331],[40.51573,-104.96331],[40.51568,-104.96331],[40.51297,-104.96324],[40.51246,-104.96322]],[[40.51921,-104.97602],[40.51923,-104.97595],[40.51925,-104.97581],[40.51933,-104.97516],[40.51937,-104.97482],[40.51936,-104.97475],[40.51935,-104.9747]]],"main":[[[40.53023,-104.98229],[40.53115,-104.98229],[40.53151,-104.98229],[40.53156,-104.98229],[40.53195,-104.98229],[40.53201,-104.98229],[40.53277,-104.98229],[40.53299,-104.98229],[40.53303,-104.98229],[40.5331,-104.98229],[40.53314,-104.98229],[40.53327,-104.98229],[40.53379,-104.98228],[40.53445,-104.98228],[40.53452,-104.98228],[40.53511,-104.98229],[40.53552,-104.98229],[40.53602,-104.9823],[40.53608,-104.9823],[40.53678,-104.98228],[40.53747,-104.98229]],[[40.52475,-104.98229],[40.52484,-104.98233],[40.52509,-104.98233],[40.52634,-104.98232],[40.52689,-104.98232]],[[40.52294,-104.98219],[40.52305,-104.9822]]]};
 const DOWNTOWN=[40.5305,-104.9823];
@@ -427,7 +451,7 @@ function makeDemo(){
       const same=town===home;
       const dist=same?wp(A.walk?[['walk',25],['near',35],['mid',40]]:[['walk',4],['near',36],['mid',60]]):(aff>=.3?wp([['mid',60],['far',40]]):'far');
       if(r()<.8*aff){
-        const w=Object.assign({},BASE[b.id]||b.demo.weights);
+        const w=Object.assign({},BASE[b.id]||(b.demo&&b.demo.weights)||genericWeights(b));
         if(trail==='weekly'&&w.bikeshop){w.bikeshop*=3}
         if(kids==='yes'){if(w.kids)w.kids*=2;if(w.icecream)w.icecream*=1.5;if(w.park)w.park*=1.5}
         if(dist==='walk'&&w.market){w.market*=1.6}
@@ -436,7 +460,7 @@ function makeDemo(){
         person.discovery[b.id]={picks};
       }
       if(r()<.65*aff){
-        let base=APPEAL[b.id]??b.demo.appeal;
+        let base=APPEAL[b.id]??(b.demo&&b.demo.appeal)??3.7;
         if(b.id==='b'&&kids==='yes')base-=.4; if(b.id==='d'&&kids==='yes')base+=.5; if(b.id==='a'&&trail==='weekly')base+=.4;
         if(b.concept.key==='mixed'&&dist!=='far')base-=.3; if(b.concept.key==='gas'&&dist==='walk')base-=.8; if(b.concept.key==='drivethru'&&dist==='near')base-=.3;
         if(dist==='walk')base+=.2;
@@ -447,7 +471,7 @@ function makeDemo(){
         if(dist==='walk')how=r()<.7?'walk':(r()<.5?'bike':'drive');
         else if(dist==='near')how=modes.includes('bike')&&r()<(A.walk?.45:.2)?'bike':'drive';
         else how=trail==='weekly'&&A.walk&&r()<.5?'bike':(r()<.04?'bike':'drive');
-        const pr=WHENP[b.id]||b.demo.when;
+        const pr=WHENP[b.id]||(b.demo&&b.demo.when)||{wkdam:.2,wkdmid:.3,wkdpm:.45,wkndam:.35,wkndpm:.45};
         const when=[];
         for(const [k,pv] of Object.entries(pr)){let q=pv; if(k==='wkndam'&&(how==='bike'||trail==='weekly'))q+=.3; if(k==='wkdam'&&dist==='walk')q+=.2; if(r()<q)when.push(k)}
         if(!when.length)when.push(Object.entries(pr).sort((x,y)=>y[1]-x[1])[0][0]);
@@ -458,14 +482,14 @@ function makeDemo(){
         else if(dist==='mid')freq=wp([['weekly',trail==='weekly'?40:22],['monthly',45],['rarely',20]]);
         else freq=wp([['weekly',10],['monthly',45],['rarely',35],['never',10]]);
         if(b.concept.key==='grocery'&&concept>=4&&dist!=='far')freq=wp([['weekly',70],['daily',10],['monthly',20]]);
-        const spend=wp(SPENDP[b.id]||b.demo.spend);
+        const spend=wp(SPENDP[b.id]||(b.demo&&b.demo.spend)||[['5-10',30],['10-20',45],['20+',25]]);
         const extras=[];
         const ep={bikeracks:(how==='bike'||trail==='weekly')?.7:.08,patio:.45,drivethru:how==='drive'&&['a','e','j'].includes(b.id)?.4:.06,kidspace:kids==='yes'?.55:.05,local:.45,late:['a','i'].includes(b.id)?.25:.1,parking:how==='drive'?.4:.05,wifi:b.id==='a'?.25:.05};
         for(const [k,pv] of Object.entries(ep)) if(r()<pv)extras.push(k);
         let comment='';
         if(r()<.22){
           const seg=trail==='weekly'?'trail':dist==='walk'?'walk':kids==='yes'?'kids':how==='drive'?'drive':'any';
-          const pool=(COMMENTS[b.id]||b.demo.comments).filter(([sg])=>sg===seg||sg==='any');
+          const pool=(COMMENTS[b.id]||(b.demo&&b.demo.comments)||[]).filter(([sg])=>sg===seg||sg==='any');
           if(pool.length)comment=pool[Math.floor(r()*pool.length)][1];
         }
         person.concepts[b.id]={concept,location,dist,how,when,freq,spend,extras,comment,at:person.updatedAt};
@@ -475,10 +499,20 @@ function makeDemo(){
   }
   return out;
 }
-const DEMO=makeDemo();
+function genericWeights(b){
+  const w={restaurant:12,coffee:10,grocery:10,market:8,park:8,kids:6,fastfood:6,icecream:6,fitness:5,brunch:5,housing:4};
+  const k=(CATS.find(([v,l])=>l.toLowerCase().includes(String(b.concept.title).toLowerCase().split(/[ &/]/)[0]))||[])[0];
+  if(k)w[k]=(w[k]||0)+24;
+  return w;
+}
+let DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.15.0', date:'2026-11-09', title:'Areas and sites managed from the sheet', items:[
+    ['new','Areas and sites can now be added, edited, drafted or closed without changing the website code.'],
+    ['new','Sites can be closed for feedback while their results stay public.'],
+    ['improved','If the sheet cannot be reached, the site falls back to its built-in list of areas and sites.']]},
   {v:'0.14.0', date:'2026-11-09', title:'Test copy of the site', items:[
     ['new','A test copy of the site at /Plotline/staging/ for checking changes before they go live, clearly marked with a banner.'],
     ['new','Answers, comments, sign-ups and feedback from the test copy go to separate test tabs and never appear on the live site.'],
@@ -792,7 +826,7 @@ function siteCard(b){
     <div class="meta"><span>${esc(b.size)}</span><span>${esc(b.price)}</span><span>${esc(b.notes)}</span></div>
     <p class="small muted"><b>What could go here?</b> ${esc(b.concept.blurb)} ${IMG[b.id]?'The picture is an illustration of one possible idea, not a real plan.':'This is one possible idea, not a real plan.'}</p>
     <div class="wish">${t?`<span class="muted small">Top wish so far</span><b>${esc(LBL.cats[t[0]])}</b><span class="muted small num">${pct(t[1],st.nd)}% of ${st.nd}</span>`:`<span class="muted small">No answers yet. Be the first.</span>`}</div>
-    <div class="row"><a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a><a class="btn ghost" href="#${b.slug}-results">See results</a><button type="button" class="btn ghost" data-act="locate" data-v="${b.id}">Show on map</button><button type="button" class="btn ghost" data-act="share" data-v="${b.id}">Share</button></div>
+    <div class="row">${b.status==='closed'?'<span class="tag">Closed for feedback</span>':`<a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a>`}<a class="btn ghost" href="#${b.slug}-results">See results</a><button type="button" class="btn ghost" data-act="locate" data-v="${b.id}">Show on map</button><button type="button" class="btn ghost" data-act="share" data-v="${b.id}">Share</button></div>
   </div></article>`;
 }
 function viewHome(){
@@ -872,6 +906,7 @@ function profileSummary(p){
   return bits.map(esc).join(' · ');
 }
 function viewSurvey(b){
+  if(b.status==='closed'){const A=AREA[b.area];return `<a class="back" href="#area-${A.slug}">\u2190 ${esc(A.name)}</a><section class="hero"><span class="label">Closed for feedback</span><h1>${esc(b.name)}</h1><p>This site is no longer taking answers. Thank you to everyone who weighed in.</p><div class="row"><a class="btn primary" href="#${b.slug}-results">See the results</a></div></section>`;}
   if(S.draftFor!==b.id)initDraft(b);
   const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
   const needProfile=!S.mine.profile||S.editProfile;

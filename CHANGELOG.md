@@ -2,6 +2,12 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.15.0 · 2026-11-09 · Areas and sites managed from the sheet
+
+- **New:** Areas and sites can now be added, edited, drafted or closed without changing the website code.
+- **New:** Sites can be closed for feedback while their results stay public.
+- **Improved:** If the sheet cannot be reached, the site falls back to its built-in list of areas and sites.
+
 ## v0.14.0 · 2026-11-09 · Test copy of the site
 
 - **New:** A test copy of the site at /Plotline/staging/ for checking changes before they go live, clearly marked with a banner.
