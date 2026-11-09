@@ -1,0 +1,1484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Plotline Timnath</title>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Tell buyers and future business owners what you want on Main Street in Timnath, Colorado.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow civic column (phone-first), sticky town bar, cards only for buildings. */
+:root{
+  --bg:#F3F6F2; --surface:#FFFFFF; --ink:#18282A; --muted:#5A6B69; --line:#D6DFDA;
+  --accent:#0D6B64; --accent-ink:#FFFFFF; --accent-soft:#DCEDE9;
+  --sun:#D99A12; --sun-soft:#FBEFCF; --warn:#9A5B00; --bad:#B23A2E;
+  --wall:#E9DCC6; --brick:#B86A4B; --trim:#2F4B4A; --glass:#BFD8DA; --ground:#C9D3C9;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1817; --surface:#172322; --ink:#E3ECE9; --muted:#9AAEAA; --line:#2A3B39;
+  --accent:#4CBFB3; --accent-ink:#06201D; --accent-soft:#1D3633;
+  --sun:#F0B940; --sun-soft:#3A3018; --warn:#F0B940; --bad:#F08A7E;
+  --wall:#3B3528; --brick:#8A4C36; --trim:#9FC4BF; --glass:#2C4A4D; --ground:#22302E; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1817; --surface:#172322; --ink:#E3ECE9; --muted:#9AAEAA; --line:#2A3B39;
+  --accent:#4CBFB3; --accent-ink:#06201D; --accent-soft:#1D3633;
+  --sun:#F0B940; --sun-soft:#3A3018; --warn:#F0B940; --bad:#F08A7E;
+  --wall:#3B3528; --brick:#8A4C36; --trim:#9FC4BF; --glass:#2C4A4D; --ground:#22302E; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,7vw,2.8rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.45rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.label{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar .in{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:1.2rem;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+.brand svg{width:22px;height:22px}
+.brand small{font-family:var(--body);font-weight:600;font-size:.8rem;color:var(--muted)}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.88rem;padding:6px 10px;border-radius:8px}
+.nav a.on{color:var(--ink);background:var(--bg)}
+.about-grid{display:grid;gap:14px;padding-top:24px}
+.promise{background:var(--ink);color:var(--bg);border-radius:16px;padding:22px 18px;display:grid;gap:10px}
+.promise .label{color:inherit;opacity:.75}
+.promise-line{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,5.5vw,2rem);line-height:1.15;text-wrap:balance;letter-spacing:-.01em}
+.promise p:last-child{opacity:.85;max-width:60ch}
+.pull{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.3;border-left:4px solid var(--sun);padding-left:14px;max-width:46ch}
+.cta-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-soft);border-radius:14px;padding:16px}
+.cta-card > div{display:grid;gap:4px;min-width:0;flex:1 1 220px}
+.tiers{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:2px;align-content:start}
+.tier b{font-family:var(--display);font-size:2rem;line-height:1.1}
+.tier p{margin-top:6px}
+select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+.check{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.88rem;color:var(--muted)}
+.check input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent)}
+@media (min-width:640px){.about-grid{grid-template-columns:1fr 1fr}}
+.side{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:grid;gap:14px;align-content:start}
+.side .btn{justify-self:start}
+.points{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.points li{display:grid;gap:2px;padding-left:14px;border-left:3px solid var(--accent-soft)}
+.points li b{font-weight:700}
+.points li span{color:var(--muted);font-size:.95rem}
+.fair{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.status{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.status.local{background:var(--sun-soft);color:var(--warn)}
+
+/* home */
+.hero{padding-block:32px 8px;display:grid;gap:14px}
+.hero p{max-width:60ch;font-size:1.05rem}
+.pledge{display:flex;flex-wrap:wrap;gap:8px}
+.pledge span{font-size:.82rem;font-weight:600;padding:5px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+.section{padding-block:28px 0;display:grid;gap:14px}
+.cards{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
+.card .art{background:linear-gradient(var(--accent-soft),var(--bg));border-bottom:1px solid var(--line)}
+.card .art svg{display:block;width:100%;height:auto;max-height:150px}
+.art.idea{position:relative;display:block;text-decoration:none;color:inherit}
+.art.idea img{display:block;width:100%;height:auto;aspect-ratio:1200/670;max-width:100%;object-fit:cover;background:var(--accent-soft)}
+.idea-chip{position:absolute;left:12px;bottom:12px;background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 10px;font-family:var(--display);font-weight:700;font-size:1rem;line-height:1.15;display:grid;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.idea-chip small{font-family:var(--body);font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.card .body{padding:16px;display:grid;gap:10px}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--sun-soft);padding:3px 8px;border-radius:6px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem;color:var(--muted)}
+.wish{display:flex;align-items:baseline;gap:8px;font-size:.95rem}
+.wish b{font-family:var(--display);font-size:1.15rem}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{appearance:none;border:0;cursor:pointer;font:600 .95rem/1 var(--body);padding:12px 16px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.block{width:100%;padding:16px;font-size:1.05rem}
+.steps{display:grid;gap:10px;counter-reset:s}
+.steps li{list-style:none;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.steps li::before{counter-increment:s;content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;display:grid;place-items:center;font-size:.85rem}
+.steps{padding:0;margin:0}
+.note{border-left:3px solid var(--sun);background:var(--surface);padding:12px 14px;border-radius:0 10px 10px 0;font-size:.92rem}
+
+/* survey */
+.back{display:inline-block;padding-block:16px 0;font-weight:600;text-decoration:none}
+.bhead{padding-block:12px 4px;display:grid;gap:8px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:grid;gap:18px}
+.q + .q{margin-top:14px}
+.qhead{display:grid;gap:4px}
+.qhead .step{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.field{display:grid;gap:8px}
+.field > .lbl{font-weight:600}
+.field > .lbl em{font-style:normal;font-weight:400;color:var(--muted);font-size:.88rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;cursor:pointer;font:500 .92rem/1.2 var(--body);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:99px;padding:9px 13px;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale .chip{border-radius:10px;padding:10px 0;font-weight:700;font-size:1.05rem;font-family:var(--display)}
+.scale-ends{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:90px;resize:vertical}
+.concept{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;background:var(--sun-soft);border-radius:10px;padding:12px}
+.concept .ico{font-family:var(--display);font-weight:800;font-size:1.6rem;width:44px;height:44px;border-radius:10px;background:var(--surface);display:grid;place-items:center;color:var(--warn)}
+.map{height:340px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--accent-soft);z-index:0}
+@media (min-width:600px){.map{height:420px}}
+.pin-wrap{background:none;border:0}
+.pin{display:grid;place-items:center;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.pin b{transform:rotate(45deg);color:var(--accent-ink);font-family:var(--display);font-size:15px}
+.pin-sm{width:28px;height:28px;flex:none;border-width:2px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.pin-sm b{font-size:13px}
+h1 .pin-sm{width:34px;height:34px}
+h1 .pin-sm b{font-size:16px}
+.pin-on-art{position:absolute;left:12px;top:12px;width:40px;height:40px}
+.pin-on-art b{font-size:18px}
+.lettered{display:flex;align-items:center;gap:10px}
+.lettered > span:last-child{min-width:0}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.legend-item{appearance:none;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;color:var(--ink);font:inherit;min-width:0}
+.legend-item > span:last-child{display:grid;min-width:0;font-size:.88rem;line-height:1.25}
+.legend-item small{color:var(--muted);font-size:.78rem}
+.map-label{background:none;border:0}
+.map-label span{display:inline-block;transform:translateX(-50%);white-space:nowrap;font:600 12px var(--body);color:var(--accent);background:var(--surface);padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
+.pop{display:grid;gap:4px;font-family:var(--body)}
+.pop strong{font-family:var(--display);font-size:15px}
+.pop-idea{color:var(--accent);font-weight:700}
+.pop-meta{font-size:12px;color:#555}
+.pop-links{display:flex;gap:12px;margin-top:4px;font-weight:700}
+.leaflet-container{font-family:var(--body)}
+.tiles-dark{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.mock{margin:0;display:grid;gap:6px}
+.mock img{display:block;width:100%;height:auto;aspect-ratio:1200/670;max-width:100%;border-radius:10px;border:1px solid var(--line);background:var(--accent-soft);object-fit:cover}
+.mock figcaption{font-size:.78rem;color:var(--muted);font-style:italic}
+.saved-profile{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:.92rem}
+.error{color:var(--bad);font-weight:600}
+.privacy{font-size:.85rem;color:var(--muted)}
+
+/* results */
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink);font:600 .85rem var(--body);padding:8px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.banner{background:var(--sun-soft);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:.9rem}
+.banner b{color:var(--warn)}
+.filters{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.preset{appearance:none;cursor:pointer;font:600 .85rem var(--body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:8px;padding:8px 10px;text-align:left}
+.headline{font-family:var(--display);font-size:1.3rem;font-weight:700;line-height:1.25;text-wrap:balance}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kpi{background:var(--surface);padding:12px 10px;display:grid;gap:2px;min-width:0}
+.kpi b{font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.75rem;color:var(--muted);line-height:1.3}
+@media (max-width:480px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.bars{display:grid;gap:8px}
+.br{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 3.2em;gap:10px;align-items:center;font-size:.9rem}
+.br .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br .track{height:12px;background:var(--bg);border-radius:6px;overflow:hidden}
+.br .fill{height:100%;background:var(--accent);border-radius:6px}
+.br.top .fill{background:var(--sun)}
+.br .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}}
+.quote{border-left:3px solid var(--accent);padding:2px 0 2px 12px;display:grid;gap:4px}
+.quote small{color:var(--muted);font-size:.78rem}
+.warnbox{border:1.5px dashed var(--sun);border-radius:10px;padding:10px 14px;font-size:.9rem}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.f-wall{fill:var(--wall)} .f-brick{fill:var(--brick)} .f-trim{fill:var(--trim)} .f-glass{fill:var(--glass)} .f-ground{fill:var(--ground)} .f-sun{fill:var(--sun)} .f-sign{fill:var(--surface)} .f-text{fill:var(--ink);font:700 11px var(--body)}
+@media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
+@media (max-width:480px){.status{font-size:0;width:12px;height:12px;padding:0;border-radius:50%;background:var(--accent);flex:none}.status.local{background:var(--sun)}.nav a{padding:6px 7px;font-size:.84rem}.nav{gap:0}.brand small{display:none}.bar .in{gap:8px;flex-wrap:nowrap}}
+.foot{border-top:1px solid var(--line);background:var(--surface);margin-top:24px}
+.foot-in{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px calc(24px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;font-size:.85rem}
+.foot nav{display:flex;flex-wrap:wrap;gap:6px 16px}
+.foot a{color:var(--accent);font-weight:600;text-decoration:none}
+.privacy a{color:var(--accent)}
+.policy{display:grid;gap:12px;padding-top:20px;max-width:64ch}
+.policy h2{margin-top:18px}
+.policy h3{margin-top:6px}
+.policy ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.policy .promise{margin-block:8px}
+.area-grid{display:grid;gap:14px}
+@media (min-width:640px){.area-grid{grid-template-columns:1fr 1fr}}
+.area-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;align-content:start}
+.area-head{text-decoration:none;color:inherit;display:grid;gap:4px}
+.area-sites{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.area-sites a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.area-sites a > span:last-child{display:grid;min-width:0;line-height:1.25;font-size:.92rem}
+.area-sites small{color:var(--muted);font-size:.8rem}
+.area-wrap{background:none;border:0}
+.area-pin{display:inline-grid;white-space:nowrap;cursor:pointer;background:var(--ink);color:var(--bg);font:700 13px var(--display);padding:5px 10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.3);line-height:1.15;text-align:center}
+.area-pin.pos-e{transform:translate(16px,-50%)}.area-pin.pos-w{transform:translate(calc(-100% - 16px),-50%)}.area-pin.pos-se{transform:translate(8px,8px)}.area-pin.pos-s{transform:translate(-50%,14px)}.area-pin.pos-n{transform:translate(-50%,calc(-100% - 14px))}
+.area-pin small{font:600 10px var(--body);opacity:.8}
+.art-sketch{background:var(--accent-soft);aspect-ratio:1200/670;display:grid;place-items:center;max-width:100%}
+.art-sketch svg{width:80%;height:auto}
+.releases{display:grid;gap:14px;padding-top:8px}
+.release{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px}
+.rel-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.rel-v{font-family:var(--display);font-weight:800;font-size:1.05rem}
+.rel-current{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:6px}
+.release h2{font-size:1.2rem}
+.release ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.release li{display:grid;grid-template-columns:5.6em 1fr;gap:10px;align-items:start;font-size:.95rem}
+.rel-tag{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:3px 0;border-radius:6px;margin-top:2px}
+.rel-new{background:var(--accent-soft);color:var(--accent)}
+.rel-improved{background:var(--sun-soft);color:var(--warn)}
+.rel-fixed{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.foot-ver{color:var(--muted)!important;font-weight:500!important;font-size:.8rem}
+dialog.share{border:1px solid var(--line);border-radius:16px;padding:0;max-width:min(520px,calc(100vw - 32px));width:100%;background:var(--surface);color:var(--ink)}
+dialog.share::backdrop{background:rgba(10,20,20,.45)}
+.share-in{padding:18px;display:grid;gap:14px}
+.share-in h2{font-size:1.2rem}
+.copyrow{display:flex;gap:8px}.copyrow input{min-width:0;flex:1}
+.qrbox{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.qr{background:#fff;padding:8px;border-radius:8px;border:1px solid var(--line);line-height:0}
+.qr img,.qr canvas{display:block;max-width:100%}
+.qr-side{display:grid;gap:6px;flex:1 1 180px;min-width:0}
+.flyer-tools{display:grid;gap:10px;padding-block:8px 16px}
+.flyer{background:#fff;color:#18282A;border:1px solid var(--line);border-radius:14px;padding:28px 24px;display:grid;gap:16px;max-width:640px;margin:0 auto}
+.flyer h1{font-size:clamp(1.8rem,6vw,2.6rem);color:#18282A}
+.flyer .label{color:#5A6B69}
+.flyer-art{border-radius:10px;overflow:hidden;border:1px solid #D6DFDA}
+.flyer-art img{display:block;width:100%;height:auto}
+.flyer-idea{font-size:1.1rem}
+.flyer-qr{display:flex;flex-wrap:wrap;gap:18px;align-items:center;border-top:2px solid #18282A;padding-top:16px}
+.flyer-qr > div:last-child{flex:1 1 200px;display:grid;gap:4px}
+.flyer-cta{font-family:var(--display);font-weight:800;font-size:1.6rem}
+.flyer-foot{font-size:.85rem;color:#5A6B69;border-top:1px solid #D6DFDA;padding-top:10px}
+@media print{
+  body{background:#fff!important}
+  .bar,.foot,.no-print,.toast,body::before{display:none!important}
+  .wrap{max-width:none;padding:0}
+  .flyer{border:0;border-radius:0;padding:0;max-width:none}
+  @page{size:letter;margin:0.5in}
+}
+.hp{position:absolute!important;left:-10000px!important;top:auto;width:1px;height:1px;overflow:hidden}
+.rep-head{display:grid;gap:6px;padding-block:6px 4px;border-bottom:3px solid var(--ink);margin-bottom:8px}
+.rep-sec{padding-block:14px 4px;display:grid;gap:10px;break-inside:avoid}
+.rep-sec h2{font-size:1.15rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.tbl table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:520px}
+.tbl caption{text-align:left;padding:8px 10px;font-size:.8rem;color:var(--muted)}
+.tbl th,.tbl td{padding:8px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl thead th{font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-top:0}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr.small-n td,.tbl tr.small-n th{color:var(--muted)}
+.quotes{margin:0;padding-left:1.1em;display:grid;gap:8px}
+@media print{.rep-sec{padding-block:8px 2px}.tbl{border:0;overflow:visible}.tbl table{min-width:0}.kpis{break-inside:avoid}}
+.stage-banner{background:#7A2E8E;color:#fff;font-size:.88rem;padding:10px max(16px,env(safe-area-inset-left,0px));text-align:center}
+.stage-banner a{color:#fff;font-weight:700}
+@media print{.stage-banner{display:none}}
+</style>
+</head>
+<body>
+
+
+<header class="bar"><div class="in">
+  <a class="brand" href="#home">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="9" width="20" height="13" rx="2" fill="var(--accent)"/><path d="M2 9 L12 3 L22 9" fill="none" stroke="var(--sun)" stroke-width="2.4" stroke-linejoin="round"/><rect x="9" y="14" width="6" height="8" fill="var(--surface)"/></svg>
+    Plotline <small>Timnath</small>
+  </a>
+  <nav class="nav"><a href="#home" data-nav="home">Weigh in</a><a href="#join" data-nav="join">Get notified</a><a href="#about" data-nav="about">About</a></nav>
+  <span class="status" id="status">Connecting…</span>
+</div></header>
+<div class="stage-banner" id="stage-banner" hidden></div>
+<main class="wrap" id="app"></main>
+<footer class="foot"><div class="foot-in">
+  <span>Plotline · Timnath, Colorado</span>
+  <nav><a href="#privacy">Privacy</a><a href="#about">About</a><a href="#join">Get notified</a><a href="#developers">Request a survey</a><a href="#release-notes">Release notes</a></nav>
+  <span class="muted">We sell what the neighborhood thinks. Never who you are.</span>
+  <a class="foot-ver num" id="foot-ver" href="#release-notes">Version</a>
+</div></footer>
+<dialog class="share" id="share-dlg" aria-labelledby="share-title"></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+// ---------- reference data ----------
+const AREAS = [
+  {id:'oldtown', slug:'old-town-timnath', name:'Old Town Timnath', town:'Timnath', blurb:'Storefronts and lots along Main Street in Timnath\u2019s original downtown.', center:[40.5305,-104.9823], zoom:15, walk:true, labelPos:'e'},
+  {id:'harmony', slug:'i25-harmony', name:'I-25 & Harmony', town:'Timnath', blurb:'Fast-growing commercial corridor along Harmony Road at the interstate.', center:[40.5212,-104.9765], zoom:13, labelPos:'s'},
+  {id:'windsor', slug:'downtown-windsor', name:'Downtown Windsor', town:'Windsor', blurb:'Main Street (Highway 392) storefronts and pads between the shopping centers and Windsor Lake.', center:[40.4795,-104.9095], zoom:14, walk:true, walkCenter:[40.4792,-104.9012], labelPos:'s'},
+  {id:'i25-392', slug:'i25-392', name:'I-25 & Highway 392', town:'Windsor', blurb:'Windsor\u2019s interstate gateway, west of town.', center:[40.4840,-104.9845], zoom:14, labelPos:'se'}
+];
+const BUILDINGS = [
+  {id:'a', letter:'A', area:'oldtown', slug:'4100-main', name:'4100 Main St', tag:'For lease', size:'About 1,627 sq ft', price:'Listed at $22.90/sq ft/yr NNN (about $3,100/mo)', notes:'Standalone retail/office building with strong street visibility. A homebuilder currently lists its office here, so confirm what is available.', facade:'corner', lat:40.53213, lng:-104.98103,
+   concept:{key:'coffee', mark:'C', label:'a coffee shop', title:'Coffee shop', blurb:'Espresso, drip and pastries. Opens early, closes mid-afternoon.'}},
+  {id:'c', letter:'B', area:'oldtown', slug:'4109-main', name:'4109 Main St', tag:'Sublease', size:'774–2,348 sq ft (three spaces)', price:'Rate not listed', notes:'Class C building with Main Street frontage and natural light, currently office', facade:'wide', lat:40.5316, lng:-104.9829, approx:true,
+   concept:{key:'bakery', mark:'B', label:'a bakery and breakfast spot', title:'Bakery & breakfast', blurb:'Bread, pastries and a short breakfast menu. Busy weekends, grab-and-go weekdays.'}},
+  {id:'d', letter:'C', area:'oldtown', slug:'4135-main', name:'4135 Main St', tag:'Land for sale', size:'About 1.34 acres (parcel records differ)', price:'Listed at $955,000', notes:'Vacant commercial land on Main Street', facade:'lot', lat:40.5293, lng:-104.983, approx:true,
+   concept:{key:'trucks', mark:'F', label:'a food truck park with a patio and play area', title:'Food truck park', blurb:'Rotating food trucks, shaded seating, a small play area and bike parking.'}},
+  {id:'b', letter:'D', area:'oldtown', slug:'4138-main', name:'4138 Main St · Colorado Feed & Grain', tag:'Status unclear', size:'2,872 sq ft end-cap, main level', price:'Rate not listed', notes:'Historic 1920 building. Timnath Beerwerks runs a taproom in part of it; this listing is a separate end-cap space', facade:'brick', lat:40.52898, lng:-104.98171,
+   concept:{key:'kitchen', mark:'K', label:'a kitchen and patio next to the brewery', title:'Kitchen & patio', blurb:'A casual spot serving food to go with a beer from Timnath Beerwerks next door, with a family-friendly patio.'}},
+  {id:'g', letter:'A', area:'harmony', slug:'ladera-i25-harmony', name:'Ladera · SE corner of I-25 & Harmony', tag:'For sale or lease', size:'Large master-planned site (size varies by listing)', price:'Price on request', notes:'Master-planned land at the interstate; listing details conflict, so confirm with the broker', facade:'lot', lat:40.5180, lng:-104.9935, approx:true,
+   concept:{key:'mixed', mark:'M', label:'a mixed-use district with shops, homes and a park', title:'Shops, homes & a park', blurb:'Walkable blocks with ground-floor shops, apartments or townhomes above, and a central green.'},
+   demo:{appeal:3.6, weights:{park:18,restaurant:14,housing:12,grocery:12,coffee:10,kids:8,fitness:8,taproom:6,market:6,brunch:6}, when:{wkdam:.1,wkdmid:.2,wkdpm:.45,wkndam:.4,wkndpm:.6}, spend:[['10-20',45],['20+',35],['5-10',20]],
+     comments:[['any','More apartments means more traffic. Show us the road plan first.'],['kids','A real park with a playground would be used every day.'],['any','Walkable shops would be great if it is not just chain stores.'],['trail','Connect it to the Poudre Trail and I would ride there.']]}},
+  {id:'e', letter:'B', area:'harmony', slug:'5590-e-harmony', name:'5590 E Harmony Rd', tag:'For sale or build-to-suit', size:'Two lots, 0.675 acres each', price:'About $30/sq ft', notes:'Commercial lots under a mile from I-25, marketed to restaurants, retail and offices', facade:'lot', lat:40.5225, lng:-104.9890, approx:true,
+   concept:{key:'drivethru', mark:'Q', label:'a fast-casual restaurant with a drive-thru', title:'Drive-thru restaurant', blurb:'A quick-service restaurant with a drive-thru lane, open lunch through late evening.'},
+   demo:{appeal:3.2, weights:{fastfood:22,coffee:14,restaurant:12,grocery:10,gas:8,market:6,brunch:5,icecream:5,fitness:4,kids:4,park:4,housing:3}, when:{wkdam:.2,wkdmid:.5,wkdpm:.45,wkndam:.15,wkndpm:.35}, spend:[['5-10',45],['10-20',45],['u5',5],['20+',5]],
+     comments:[['drive','Harmony is already backed up at rush hour. A drive-thru line spilling onto the road would be a problem.'],['any','Another drive-thru is not what we need. A sit-down place would be better.'],['kids','Quick dinner on the way home from practice? We would use it.'],['any','Make sure the stacking lane is long enough.']]}},
+  {id:'f', letter:'C', area:'harmony', slug:'harmony-artisan-lots', name:'Harmony Rd & Artisan Pl lots', tag:'Land for sale', size:'6.40 and 2.47 acres', price:'$5.16M and $1.99M ($7.15M together)', notes:'Improved lots zoned commercial mixed-use, about five minutes from I-25', facade:'lot', lat:40.5239, lng:-104.9591, approx:true,
+   concept:{key:'grocery', mark:'G', label:'a full grocery store with a pharmacy', title:'Grocery store', blurb:'A full-service grocery store with a pharmacy, so nearby neighborhoods do not have to drive across town.'},
+   demo:{appeal:4.4, weights:{grocery:34,market:12,gas:8,restaurant:8,coffee:8,fitness:6,kids:5,park:6,housing:3,brunch:4,bakery:4}, when:{wkdam:.15,wkdmid:.2,wkdpm:.6,wkndam:.45,wkndpm:.4}, spend:[['20+',70],['10-20',25],['5-10',5]],
+     comments:[['any','We drive 15 minutes for groceries now. This would be a game changer.'],['walk','Please include a pharmacy.'],['any','A grocery store here would get more use than anything else on this list.'],['drive','Plan the entrance so it does not jam Harmony at 5 pm.']]}},
+  {id:'i', letter:'A', area:'windsor', slug:'windsor-1296-main', name:'1296 Main St, Unit D', tag:'For lease', size:'1,635 sq ft', price:'Rate not listed', notes:'Street retail at Main and 13th', facade:'corner', lat:40.48033, lng:-104.9218,
+   concept:{key:'icecream', mark:'I', label:'an ice cream and dessert shop', title:'Ice cream & dessert', blurb:'Locally made ice cream, shakes and treats, open late on summer evenings.'},
+   demo:{appeal:4.2, weights:{icecream:26,coffee:14,bakery:10,kids:10,brunch:6,restaurant:8,books:6,fitness:4,market:4,wine:4}, when:{wkdam:0,wkdmid:.1,wkdpm:.6,wkndam:.1,wkndpm:.75}, spend:[['5-10',60],['u5',15],['10-20',22],['20+',3]],
+     comments:[['kids','Summer evenings after the lake, this would be the stop.'],['walk','Please stay open late in summer.'],['any','Locally made ice cream would be a big draw.'],['trail','Make it easy to stop by bike.']]}},
+  {id:'h', letter:'B', area:'windsor', slug:'windsor-1039-main', name:'1039 Main St · Windsor Town Center', tag:'For lease', size:'2,886 sq ft', price:'Listed at $14.50/sq ft/yr', notes:'Shopping center space on Main Street; listings show different sizes, so confirm with the broker', facade:'wide', lat:40.47835, lng:-104.91535,
+   concept:{key:'family', mark:'R', label:'a sit-down family restaurant', title:'Family restaurant', blurb:'Breakfast through dinner, booths, a kids menu and room for big tables.'},
+   demo:{appeal:4.0, weights:{restaurant:28,brunch:14,coffee:10,icecream:8,kids:8,taproom:6,bakery:6,fastfood:6,wine:4,market:4}, when:{wkdam:.15,wkdmid:.25,wkdpm:.55,wkndam:.5,wkndpm:.45}, spend:[['10-20',50],['20+',40],['5-10',10]],
+     comments:[['kids','A place with booths and a kids menu would be packed on weekends.'],['any','Windsor needs more sit-down options that are not chains.'],['walk','Breakfast within walking distance? Yes.'],['drive','Parking in that center is easy, which helps.']]}},
+  {id:'j', letter:'C', area:'windsor', slug:'windsor-101-main', name:'101 Main St', tag:'For sale', size:'Retail pad with Main Street frontage', price:'Price on request', notes:'Frontage on Main Street and Highway 392 with flexible zoning for retail, commercial or mixed use', facade:'lot', lat:40.47961, lng:-104.89718,
+   concept:{key:'gas', mark:'G', label:'a gas station with a convenience market', title:'Gas station & market', blurb:'Fuel, EV chargers and a small market with grab-and-go food.'},
+   demo:{appeal:3.3, weights:{gas:22,market:14,grocery:12,coffee:12,fastfood:8,restaurant:6,icecream:6,park:6,housing:4}, when:{wkdam:.5,wkdmid:.2,wkdpm:.4,wkndam:.25,wkndpm:.25}, spend:[['20+',45],['10-20',35],['5-10',20]],
+     comments:[['walk','This is right by the lake. Not sure a gas station fits there.'],['any','EV chargers would be a plus.'],['drive','Handy on the way to I-25 in the morning.'],['any','Lighting and late-night noise matter to the neighbors.']]}},
+  {id:'k', letter:'A', area:'i25-392', slug:'i25-392-nec', name:'NE corner of I-25 & Hwy 392', tag:'Land for sale', size:'Commercial development land', price:'Price on request', notes:'Interstate frontage at Windsor’s west gateway', facade:'lot', lat:40.4840, lng:-104.9845, approx:true,
+   concept:{key:'hotel', mark:'H', label:'a hotel with restaurants', title:'Hotel & restaurants', blurb:'A mid-size hotel with two or three restaurants, serving travelers and weekend events.'},
+   demo:{appeal:3.5, weights:{hotel:18,restaurant:18,fastfood:10,gas:10,grocery:8,taproom:8,coffee:8,fitness:6,housing:4}, when:{wkdam:.1,wkdmid:.3,wkdpm:.5,wkndam:.2,wkndpm:.5}, spend:[['20+',50],['10-20',40],['5-10',10]],
+     comments:[['any','Visitors for tournaments and concerts need somewhere to stay.'],['any','A good restaurant at the interstate would get our business.'],['drive','Make sure the frontage road can handle it.']]}}
+];
+const STAGE=/\/staging\/?/.test(location.pathname)?'staging':'live';
+const ASSET_BASE=STAGE==='staging'?'../':'';
+const asset=u=>u&&!/^(https?:|data:|\/)/.test(u)?ASSET_BASE+u:u;
+const IMG={a:asset('img/a.jpg'),b:asset('img/b.jpg'),c:asset('img/c.jpg'),d:asset('img/d.jpg')};
+const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
+const sitesIn=A=>BUILDINGS.filter(b=>b.area===A.id);
+const GEO={"trail":[[[40.53727,-105.00013],[40.53724,-105.00013],[40.53722,-105.00015],[40.53712,-105.00024],[40.53701,-105.00037],[40.53659,-105.00076],[40.53648,-105.00091],[40.53637,-105.00101],[40.53629,-105.00103],[40.53623,-105.00102],[40.53616,-105.00102],[40.53609,-105.00099],[40.53603,-105.00094],[40.53584,-105.00063],[40.53571,-105.00054],[40.53541,-105.00041],[40.53516,-105.00032],[40.53487,-105.00023],[40.53453,-105.00017],[40.53421,-105.00016],[40.5341,-105.00015],[40.53297,-105.0002],[40.53216,-105.0001],[40.53178,-104.99999],[40.53149,-104.99987],[40.53149,-104.99977],[40.5314,-104.99955],[40.53132,-104.99929],[40.53131,-104.99913],[40.53128,-104.99891],[40.53124,-104.99873],[40.5312,-104.99858],[40.5311,-104.99837],[40.53103,-104.99822],[40.53101,-104.99798],[40.53096,-104.99759],[40.53092,-104.99743],[40.53085,-104.99729],[40.53081,-104.99717],[40.53079,-104.99702],[40.53079,-104.997],[40.53076,-104.99648],[40.53076,-104.99636],[40.53075,-104.99625],[40.53075,-104.99609],[40.53075,-104.99601],[40.53074,-104.99574],[40.53074,-104.99562],[40.53074,-104.99537],[40.53072,-104.99517],[40.53071,-104.99502],[40.53072,-104.99495],[40.53071,-104.99484],[40.53068,-104.9947],[40.53069,-104.99461],[40.53069,-104.99455],[40.53068,-104.99444],[40.53066,-104.99433],[40.53065,-104.99422],[40.53065,-104.99415],[40.53064,-104.99405],[40.53062,-104.99392],[40.5306,-104.99387],[40.5306,-104.99379],[40.53063,-104.99365],[40.53066,-104.99353],[40.53066,-104.9934],[40.53066,-104.99333],[40.53067,-104.99316],[40.53068,-104.99298],[40.53069,-104.99281],[40.53069,-104.99271],[40.5307,-104.99263],[40.53067,-104.99249],[40.53062,-104.99239],[40.53058,-104.99235],[40.53051,-104.99231],[40.53046,-104.99223],[40.53043,-104.99208],[40.5304,-104.99193],[40.53036,-104.99182],[40.53029,-104.99176],[40.53025,-104.99153],[40.53022,-104.99077],[40.5302,-104.99034],[40.53021,-104.98988],[40.53024,-104.98899],[40.53024,-104.9881],[40.53021,-104.98718],[40.5302,-104.98692],[40.53013,-104.98665],[40.53003,-104.98648],[40.52988,-104.98638],[40.52917,-104.98628],[40.52815,-104.98617],[40.52764,-104.98617],[40.52747,-104.98614],[40.52682,-104.98614],[40.52637,-104.98611],[40.52607,-104.98614],[40.52583,-104.98626],[40.52554,-104.98632],[40.52526,-104.9863],[40.52482,-104.98641],[40.52466,-104.98659],[40.52451,-104.9867],[40.52447,-104.98674],[40.5242,-104.98675],[40.52415,-104.98674],[40.52406,-104.9868],[40.52395,-104.9869],[40.52387,-104.98694],[40.52379,-104.98692],[40.5237,-104.98688],[40.52367,-104.98686],[40.52324,-104.98653],[40.52316,-104.9865],[40.52304,-104.98648],[40.52297,-104.98648],[40.52293,-104.98651],[40.52292,-104.98653],[40.52291,-104.98657],[40.52293,-104.98726],[40.52296,-104.98725],[40.52295,-104.9868]],[[40.55915,-105.02003],[40.55911,-105.01998],[40.55905,-105.0199],[40.55883,-105.01974],[40.55863,-105.01965],[40.55853,-105.01962],[40.55837,-105.01959],[40.5583,-105.01955],[40.55823,-105.01954],[40.55818,-105.01957],[40.55807,-105.01973],[40.558,-105.01976],[40.55795,-105.01977],[40.55785,-105.01971],[40.55777,-105.01966],[40.55772,-105.01966],[40.55768,-105.01967],[40.55754,-105.01974],[40.55743,-105.01977],[40.55722,-105.01979],[40.55714,-105.01979],[40.55698,-105.01976],[40.55686,-105.01976],[40.5567,-105.0198],[40.55659,-105.01981],[40.55644,-105.01981],[40.5564,-105.01979],[40.55632,-105.01971],[40.55624,-105.01968]],[[40.52295,-104.9868],[40.52293,-104.98554]],[[40.51935,-104.97671],[40.51924,-104.97706],[40.51921,-104.9772],[40.51919,-104.97739],[40.51919,-104.97746],[40.51919,-104.97753],[40.51918,-104.97778],[40.51915,-104.97799],[40.51909,-104.97815],[40.51907,-104.9782],[40.51896,-104.97844],[40.5189,-104.97852],[40.51886,-104.97865],[40.51888,-104.97874],[40.51895,-104.97884],[40.51925,-104.97915],[40.51934,-104.97926],[40.51944,-104.97936],[40.5197,-104.97954],[40.51987,-104.97966],[40.52019,-104.9798],[40.52041,-104.97993],[40.52068,-104.97999],[40.52088,-104.98009],[40.52099,-104.98018],[40.52102,-104.98014],[40.52104,-104.98021],[40.52107,-104.98028],[40.52115,-104.98035],[40.52137,-104.98048],[40.52194,-104.9807],[40.52213,-104.98085],[40.52224,-104.98094],[40.52229,-104.98111],[40.52229,-104.98142],[40.5223,-104.98158],[40.52225,-104.98183],[40.52211,-104.98223],[40.52215,-104.98235],[40.52232,-104.9824],[40.52274,-104.98244],[40.52284,-104.98249],[40.52284,-104.98316],[40.52286,-104.98358],[40.52286,-104.9837],[40.52292,-104.98513],[40.52293,-104.98554]],[[40.51584,-104.9651],[40.51585,-104.96508],[40.51588,-104.96495],[40.51594,-104.96468],[40.51599,-104.96445],[40.51599,-104.96427],[40.51597,-104.96405],[40.51594,-104.96384],[40.5159,-104.96362],[40.5159,-104.96347],[40.5159,-104.96331],[40.51584,-104.96331],[40.51573,-104.96331],[40.51568,-104.96331],[40.51297,-104.96324],[40.51246,-104.96322]],[[40.51921,-104.97602],[40.51923,-104.97595],[40.51925,-104.97581],[40.51933,-104.97516],[40.51937,-104.97482],[40.51936,-104.97475],[40.51935,-104.9747]]],"main":[[[40.53023,-104.98229],[40.53115,-104.98229],[40.53151,-104.98229],[40.53156,-104.98229],[40.53195,-104.98229],[40.53201,-104.98229],[40.53277,-104.98229],[40.53299,-104.98229],[40.53303,-104.98229],[40.5331,-104.98229],[40.53314,-104.98229],[40.53327,-104.98229],[40.53379,-104.98228],[40.53445,-104.98228],[40.53452,-104.98228],[40.53511,-104.98229],[40.53552,-104.98229],[40.53602,-104.9823],[40.53608,-104.9823],[40.53678,-104.98228],[40.53747,-104.98229]],[[40.52475,-104.98229],[40.52484,-104.98233],[40.52509,-104.98233],[40.52634,-104.98232],[40.52689,-104.98232]],[[40.52294,-104.98219],[40.52305,-104.9822]]]};
+const DOWNTOWN=[40.5305,-104.9823];
+const CATS=[['coffee','Coffee shop'],['bakery','Bakery'],['brunch','Breakfast / brunch'],['restaurant','Sit-down restaurant'],['taproom','Taproom / brewery'],['wine','Wine bar'],['icecream','Ice cream / dessert'],['bikeshop','Bike shop / trail stop'],['kids','Kids’ play space'],['fitness','Fitness / yoga'],['market','Small market / grocery'],['grocery','Full grocery store'],['gas','Gas station / convenience store'],['fastfood','Fast food / drive-thru'],['park','Park / green space'],['housing','Homes / apartments'],['hotel','Hotel'],['books','Books & gifts'],['cowork','Coworking']];
+const FREQ=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['rarely','Rarely'],['never','Never']];
+const WHEN=[['wkdam','Weekday morning'],['wkdmid','Weekday midday'],['wkdpm','Weekday evening'],['wkndam','Weekend morning'],['wkndpm','Weekend afternoon / evening']];
+const HOW=[['walk','Walk'],['bike','Bike'],['drive','Drive']];
+const SPEND=[['u5','Under $5'],['5-10','$5–10'],['10-20','$10–20'],['20+','$20+']];
+const SPEND_MID={'u5':4,'5-10':7.5,'10-20':15,'20+':25};
+const EXTRAS=[['bikeracks','Bike racks & repair stand'],['patio','Patio'],['drivethru','Drive-thru'],['kidspace','Kid-friendly space'],['local','Locally owned'],['late','Open later'],['parking','Easy parking'],['wifi','Wi-Fi & laptop seats']];
+const TOWNS=[['timnath','Timnath'],['windsor','Windsor'],['fortcollins','Fort Collins'],['severance','Severance'],['other','Somewhere else']];
+const DIST=[['walk','Walking distance (under 10 min)'],['near','Under 2 miles'],['mid','2–6 miles'],['far','More than 6 miles']];
+const DIST_LABEL={walk:'Walking distance',near:'Under 2 mi',mid:'2–6 mi',far:'6+ mi'};
+const LEGACY_DIST={walk:'walk',bike:'near',drive:'mid',town:'mid',far:'far'};
+const MODES=[['walk','Walk'],['bike','Bike'],['car','Car'],['cart','Golf cart / e-bike']];
+const TRAIL=[['weekly','Weekly or more'],['monthly','A few times a month'],['never','Rarely or never']];
+const HEARD=[['facebook','Facebook group'],['nextdoor','Nextdoor'],['flyer','Flyer or QR code'],['friend','Friend or neighbor'],['plotline','Email or text from Plotline'],['other','Somewhere else']];
+const SRC_TO_HEARD={flyer:'flyer',qr:'flyer',share:'friend',fb:'facebook',facebook:'facebook',nd:'nextdoor',nextdoor:'nextdoor',email:'plotline',sms:'plotline',panel:'plotline'};
+const ARRIVED_SRC=(()=>{let v=null;try{v=new URLSearchParams(location.search).get('src');if(v){v=v.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,20);sessionStorage.setItem('plotline-src',v)}else v=sessionStorage.getItem('plotline-src')}catch(e){}return v||null})();
+const KIDS=[['yes','Yes'],['no','No'],['skip','Prefer not to say']];
+const BAND_LABEL={walk:'Under 0.5 mi',bike:'0.5–2 mi',drive:'2+ mi in Timnath',town:'Neighboring town',far:'Farther away'};
+const toMap = arr => Object.fromEntries(arr);
+const LBL={cats:toMap(CATS),freq:toMap(FREQ),when:toMap(WHEN),how:toMap(HOW),spend:toMap(SPEND),extras:toMap(EXTRAS),towns:toMap(TOWNS)};
+const WHO=[['all','Everyone'],['walk','Walking distance'],['near','Within 2 miles'],['timnath','Timnath'],['windsor','Windsor'],['fortcollins','Fort Collins']];
+
+// ---------- state ----------
+const LOCAL_KEY='plotline-timnath-mine';
+const S={ db:null, uid:null, store:'connecting', live:[], liveReady:false, mine:loadLocal(),
+  mode:'auto', filters:{who:'all',trail:false,bike:false,weekend:false,kids:false}, draft:null, draftFor:null, touched:false, editProfile:false };
+function blankMine(){return {profile:null,discovery:{},concepts:{},updatedAt:0}}
+function loadLocal(){try{const v=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null');if(v&&typeof v==='object')return Object.assign(blankMine(),v)}catch(e){}return blankMine()}
+function saveLocal(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(S.mine))}catch(e){}}
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=sel=>document.querySelector(sel);
+const app=$('#app');
+
+// ---------- simulated responses (clearly labeled in UI) ----------
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function makeDemo(){
+  const r=rng(20261107);
+  const wp=list=>{let tot=0;for(const [,w] of list)tot+=w;let x=r()*tot;for(const [v,w] of list){if((x-=w)<=0)return v}return list[list.length-1][0]};
+  const clamp=v=>Math.max(1,Math.min(5,Math.round(v)));
+  const BASE={a:{coffee:30,bakery:14,brunch:12,icecream:10,bikeshop:6,books:6,cowork:6,restaurant:8,kids:6,market:4,fitness:3,wine:4,taproom:5},
+              b:{taproom:8,restaurant:30,wine:8,market:10,kids:9,fitness:7,icecream:8,coffee:6,brunch:6,bikeshop:5,books:3,cowork:3,bakery:4},
+              c:{bakery:22,brunch:20,coffee:14,restaurant:10,books:8,icecream:8,market:6,kids:6,wine:5,cowork:4,fitness:3,bikeshop:3,taproom:4},
+              d:{restaurant:16,market:14,kids:14,taproom:12,icecream:10,fitness:8,bikeshop:6,coffee:6,brunch:5,wine:4,books:2,cowork:2,bakery:3}};
+  const COMMENTS={
+    a:[['any','Please make it local, not another chain.'],['walk','I would walk here every morning instead of driving to the big shopping center.'],['trail','We ride the trail from Windsor most Saturdays. Bike racks and a water refill and we would stop every time.'],['drive','Parking on Main is already tight at school pickup. Think about where cars go.'],['any','A patio facing the street would make downtown feel alive.'],['any','Open by 6 for commuters and I am in.']],
+    b:[['kids','Food trucks out back would be perfect for families on Friday nights.'],['walk','Worried about noise late at night. We live a block away.'],['kids','Would go if there is a kid-friendly area and it closes by 10.'],['trail','A beer after a long Saturday ride on the trail? Yes please.'],['any','Downtown needs somewhere to hang out in the evening.']],
+    c:[['any','A real bakery with fresh bread would be a weekly stop for us.'],['any','A weekend breakfast spot is what downtown is missing.'],['walk','Keep some offices nearby so it stays busy on weekdays too.'],['any','Hope there is real seating, not just grab-and-go.'],['trail','Breakfast burritos for the trail crowd would sell out.']],
+    d:[['kids','A place where kids can play while we eat would get us out every weekend.'],['walk','Worried about generator noise and trash. Please plan for that.'],['trail','Make it a trail stop: bike racks, water, shade.'],['any','Rotating trucks keep it fresh. Same three trucks every week would get old.'],['drive','Where will everyone park? That lot fills up fast.']]};
+  const APPEAL={a:3.9,b:3.6,c:4.1,d:3.8};
+  const WHENP={a:{wkdam:.45,wkdmid:.2,wkdpm:.05,wkndam:.55,wkndpm:.15},b:{wkdam:0,wkdmid:.05,wkdpm:.55,wkndam:.05,wkndpm:.75},c:{wkdam:.35,wkdmid:.15,wkdpm:.03,wkndam:.8,wkndpm:.15},d:{wkdam:0,wkdmid:.25,wkdpm:.5,wkndam:.1,wkndpm:.7}};
+  const SPENDP={a:[['u5',25],['5-10',60],['10-20',13],['20+',2]],b:[['5-10',15],['10-20',40],['20+',45]],c:[['u5',10],['5-10',45],['10-20',40],['20+',5]],d:[['5-10',20],['10-20',50],['20+',30]]};
+  const near={timnath:{timnath:1,windsor:.45,fortcollins:.4,severance:.3,other:.15},windsor:{windsor:1,timnath:.45,severance:.5,fortcollins:.3,other:.15}};
+  const out=[];
+  for(let i=0;i<320;i++){
+    const town=wp([['timnath',42],['windsor',30],['fortcollins',17],['severance',7],['other',4]]);
+    const trail=wp(town==='timnath'||town==='windsor'?[['weekly',28],['monthly',30],['never',42]]:[['weekly',30],['monthly',30],['never',40]]);
+    const kids=wp([['yes',45],['no',50],['skip',5]]);
+    const modes=['car']; if(r()<.35)modes.push('walk'); if(trail!=='never'||r()<.2)modes.push('bike'); if(r()<.12)modes.push('cart');
+    const p={town,modes,trail,kids};
+    const person={id:'sim'+i,profile:p,discovery:{},concepts:{},sim:true,updatedAt:Date.now()-i*3600e3};
+    for(const b of BUILDINGS){
+      const A=AREA[b.area], home=A.town.toLowerCase(), aff=(near[home]||{})[town]??.2;
+      const same=town===home;
+      const dist=same?wp(A.walk?[['walk',25],['near',35],['mid',40]]:[['walk',4],['near',36],['mid',60]]):(aff>=.3?wp([['mid',60],['far',40]]):'far');
+      if(r()<.8*aff){
+        const w=Object.assign({},BASE[b.id]||b.demo.weights);
+        if(trail==='weekly'&&w.bikeshop){w.bikeshop*=3}
+        if(kids==='yes'){if(w.kids)w.kids*=2;if(w.icecream)w.icecream*=1.5;if(w.park)w.park*=1.5}
+        if(dist==='walk'&&w.market){w.market*=1.6}
+        const n=1+Math.floor(r()*3),picks=[];
+        while(picks.length<n&&picks.length<Object.keys(w).length){const v=wp(Object.entries(w));if(!picks.includes(v))picks.push(v)}
+        person.discovery[b.id]={picks};
+      }
+      if(r()<.65*aff){
+        let base=APPEAL[b.id]??b.demo.appeal;
+        if(b.id==='b'&&kids==='yes')base-=.4; if(b.id==='d'&&kids==='yes')base+=.5; if(b.id==='a'&&trail==='weekly')base+=.4;
+        if(b.concept.key==='mixed'&&dist!=='far')base-=.3; if(b.concept.key==='gas'&&dist==='walk')base-=.8; if(b.concept.key==='drivethru'&&dist==='near')base-=.3;
+        if(dist==='walk')base+=.2;
+        const concept=clamp(base+(r()-.5)*2.4);
+        let lb={walk:4.1,near:3.9,mid:3.6,far:3.3}[dist]; if(b.id==='b'&&dist==='walk')lb-=.6; if(b.concept.key==='gas'&&dist==='walk')lb-=1;
+        const location=clamp(lb+(r()-.5)*2.2);
+        let how;
+        if(dist==='walk')how=r()<.7?'walk':(r()<.5?'bike':'drive');
+        else if(dist==='near')how=modes.includes('bike')&&r()<(A.walk?.45:.2)?'bike':'drive';
+        else how=trail==='weekly'&&A.walk&&r()<.5?'bike':(r()<.04?'bike':'drive');
+        const pr=WHENP[b.id]||b.demo.when;
+        const when=[];
+        for(const [k,pv] of Object.entries(pr)){let q=pv; if(k==='wkndam'&&(how==='bike'||trail==='weekly'))q+=.3; if(k==='wkdam'&&dist==='walk')q+=.2; if(r()<q)when.push(k)}
+        if(!when.length)when.push(Object.entries(pr).sort((x,y)=>y[1]-x[1])[0][0]);
+        let freq;
+        if(concept<=2)freq=wp([['rarely',60],['never',30],['monthly',10]]);
+        else if(dist==='walk')freq=wp([['daily',b.id==='a'?28:10],['weekly',48],['monthly',20],['rarely',4]]);
+        else if(dist==='near')freq=wp([['daily',6],['weekly',42],['monthly',38],['rarely',14]]);
+        else if(dist==='mid')freq=wp([['weekly',trail==='weekly'?40:22],['monthly',45],['rarely',20]]);
+        else freq=wp([['weekly',10],['monthly',45],['rarely',35],['never',10]]);
+        if(b.concept.key==='grocery'&&concept>=4&&dist!=='far')freq=wp([['weekly',70],['daily',10],['monthly',20]]);
+        const spend=wp(SPENDP[b.id]||b.demo.spend);
+        const extras=[];
+        const ep={bikeracks:(how==='bike'||trail==='weekly')?.7:.08,patio:.45,drivethru:how==='drive'&&['a','e','j'].includes(b.id)?.4:.06,kidspace:kids==='yes'?.55:.05,local:.45,late:['a','i'].includes(b.id)?.25:.1,parking:how==='drive'?.4:.05,wifi:b.id==='a'?.25:.05};
+        for(const [k,pv] of Object.entries(ep)) if(r()<pv)extras.push(k);
+        let comment='';
+        if(r()<.22){
+          const seg=trail==='weekly'?'trail':dist==='walk'?'walk':kids==='yes'?'kids':how==='drive'?'drive':'any';
+          const pool=(COMMENTS[b.id]||b.demo.comments).filter(([sg])=>sg===seg||sg==='any');
+          if(pool.length)comment=pool[Math.floor(r()*pool.length)][1];
+        }
+        person.concepts[b.id]={concept,location,dist,how,when,freq,spend,extras,comment,at:person.updatedAt};
+      }
+    }
+    if(Object.keys(person.discovery).length||Object.keys(person.concepts).length)out.push(person);
+  }
+  return out;
+}
+const DEMO=makeDemo();
+
+// ---------- release notes (newest first; add an entry with every release) ----------
+const RELEASES=[
+  {v:'0.14.0', date:'2026-11-09', title:'Test copy of the site', items:[
+    ['new','A test copy of the site at /Plotline/staging/ for checking changes before they go live, clearly marked with a banner.'],
+    ['new','Answers, comments, sign-ups and feedback from the test copy go to separate test tabs and never appear on the live site.'],
+    ['improved','Sponsor reports group repeated comments and show how many people said them.']]},
+  {v:'0.13.0', date:'2026-11-09', title:'Sponsor reports', items:[
+    ['new','Printable report for every site: summary, demand by distance and by town, top wishes, must-haves, timing, travel and reviewed comments.'],
+    ['new','Area report comparing every site in an area side by side.'],
+    ['new','Reports explain how to read the results, mark small groups, and say whether they show real or simulated data.']]},
+  {v:'0.12.0', date:'2026-11-09', title:'Spam protection', items:[
+    ['new','Every form has a hidden trap that only automated bots fill in. Those submissions are quietly discarded.'],
+    ['new','Surveys submitted faster than a person could read them are discarded.'],
+    ['new','The Plotline team is alerted when a site suddenly gets an unusual burst of answers.']]},
+  {v:'0.11.0', date:'2026-11-09', title:'Comment review', items:[
+    ['new','Comments are reviewed before they are published, to keep names and personal details off the site.'],
+    ['improved','Reviewers can remove a name from a comment and publish the rest.'],
+    ['improved','The survey and results pages explain that comments appear after review.']]},
+  {v:'0.10.0', date:'2026-11-08', title:'How did you hear about Plotline?', items:[
+    ['new','An optional question on your first survey: how you heard about Plotline. It is asked once and never shown publicly.'],
+    ['improved','Shared links, QR codes and flyers fill in the answer for you, so we can tell which ways of reaching neighbors work best.']]},
+  {v:'0.9.0', date:'2026-11-08', title:'Share kit', items:[
+    ['new','Share button on every site and results page, with a copy-ready link.'],
+    ['new','QR code for every site and area, ready to download for posts, flyers and signs.'],
+    ['new','Printable flyer for every site, sized for letter paper, for storefront windows, coffee shop boards and mailboxes.'],
+    ['new','Share this area button on each area page.']]},
+  {v:'0.8.0', date:'2026-11-07', title:'Release notes', items:[
+    ['new','This page. Every change to Plotline is listed here, newest first.'],
+    ['new','The current version number is shown in the footer.']]},
+  {v:'0.7.0', date:'2026-11-07', title:'Areas across Timnath and Windsor', items:[
+    ['new','Weigh in now opens a map of areas: Old Town Timnath, I-25 & Harmony, Downtown Windsor, and I-25 & Highway 392.'],
+    ['new','Seven new sites with suggested ideas, including a grocery store, a gas station and market, a drive-thru restaurant, a family restaurant, an ice cream shop, a mixed-use district and a hotel.'],
+    ['new','Each area has its own page, map and lettered sites.'],
+    ['improved','Each survey now asks how far you live from that site, instead of from Timnath’s Main Street.'],
+    ['new','New results filter: within 2 miles.'],
+    ['new','New answer options: fast food / drive-thru, park / green space, homes / apartments, and hotel.'],
+    ['new','The developer page explains how to survey a whole area, like a portfolio of sites.']]},
+  {v:'0.6.1', date:'2026-11-07', title:'Clearer navigation', items:[
+    ['improved','The main menu now reads Weigh in · Get notified · About.'],
+    ['improved','The list of sites is titled “Open for feedback.”']]},
+  {v:'0.6.0', date:'2026-11-07', title:'Privacy policy', items:[
+    ['new','Alpha privacy policy, under attorney review.'],
+    ['new','Site footer with links to privacy, About, notifications and survey requests.'],
+    ['new','A privacy policy link next to every form that collects information.'],
+    ['improved','Site feedback is no longer linked to your survey answers.']]},
+  {v:'0.5.2', date:'2026-11-07', title:'Separate sign-up list', items:[
+    ['improved','Notification sign-ups are stored in their own list, separate from survey answers.']]},
+  {v:'0.5.1', date:'2026-11-07', title:'Our promise', items:[
+    ['new','“We sell what the neighborhood thinks. Never who you are.” Shown on the About page, the home page, every survey, the sign-up page and the developer page.']]},
+  {v:'0.5.0', date:'2026-11-07', title:'Get notified and Plotline On Demand', items:[
+    ['new','Get notified: sign up by email or text to hear about new projects near you.'],
+    ['new','Plotline On Demand: a page for developers, owners and cities to request a survey, with reach options from 200 to 5,000+ residents.']]},
+  {v:'0.4.0', date:'2026-11-07', title:'About Plotline', items:[
+    ['new','About page explaining why residents and developers use Plotline.'],
+    ['new','Answer options for a full grocery store and a gas station / convenience store.']]},
+  {v:'0.3.1', date:'2026-11-07', title:'Lettered sites', items:[
+    ['improved','Sites are lettered A, B, C… on the map, the legend, the cards and each survey, so they are easy to match up.']]},
+  {v:'0.3.0', date:'2026-11-06', title:'Map', items:[
+    ['new','Map of downtown Timnath with a pin for each site, a 10-minute walking circle and the Poudre River Trail.'],
+    ['improved','The idea for 4138 Main St changed to a kitchen and patio, since a brewery already operates in the building.']]},
+  {v:'0.2.0', date:'2026-11-06', title:'Suggested ideas', items:[
+    ['new','Each site shows a suggested idea and an illustration of what could go there.']]},
+  {v:'0.1.0', date:'2026-11-06', title:'First test version', items:[
+    ['new','Surveys for four Main Street buildings in Old Town Timnath: what you want there, a rating of one idea, and how you would use it.'],
+    ['new','Public results with filters for walking distance, town, trail riders, weekend mornings and families.'],
+    ['new','Answers are saved and shared live.']]}
+];
+const VERSION=RELEASES[0].v;
+
+// ---------- data helpers ----------
+function hasAnswers(p){return p&&((p.discovery&&Object.keys(p.discovery).length)||(p.concepts&&Object.keys(p.concepts).length))}
+function liveRespondents(){
+  if(S.store==='live')return S.live.filter(hasAnswers);
+  return hasAnswers(S.mine)?[Object.assign({id:'me'},S.mine)]:[];
+}
+function activeMode(){ return S.mode==='demo'?'demo':'live'; }
+function dataset(){ return activeMode()==='demo'?DEMO:liveRespondents(); }
+
+function effDist(p,b){
+  const c=(p.concepts||{})[b.id];
+  if(c&&c.dist)return c.dist;
+  const band=(p.profile||{}).band;
+  return b.area==='oldtown'&&band?LEGACY_DIST[band]||null:null;
+}
+function matches(p,b,f){
+  const pr=p.profile||{}, c=(p.concepts||{})[b.id], dd=effDist(p,b);
+  if(f.who==='walk'&&dd!=='walk')return false;
+  if(f.who==='near'&&dd!=='walk'&&dd!=='near')return false;
+  if(['timnath','windsor','fortcollins'].includes(f.who)&&pr.town!==f.who)return false;
+  if(f.trail&&pr.trail!=='weekly')return false;
+  if(f.kids&&pr.kids!=='yes')return false;
+  if(f.bike&&!(c&&c.how==='bike'))return false;
+  if(f.weekend&&!(c&&(c.when||[]).includes('wkndam')))return false;
+  if(f.fn&&!f.fn(p,b))return false;
+  return true;
+}
+function stats(b,f){
+  const people=dataset().filter(p=>((p.discovery||{})[b.id]||(p.concepts||{})[b.id])&&matches(p,b,f));
+  const disc=people.map(p=>(p.discovery||{})[b.id]).filter(Boolean);
+  const con=people.map(p=>(p.concepts||{})[b.id]).filter(Boolean);
+  const count=(arr,key,multi)=>{const m={};for(const x of arr){const v=x[key];if(multi)(v||[]).forEach(k=>m[k]=(m[k]||0)+1);else if(v)m[v]=(m[v]||0)+1}return m};
+  const picks={};for(const d of disc){(d.picks||[]).forEach(k=>picks[k]=(picks[k]||0)+1)}
+  const writeins=disc.map(d=>d.writein).filter(Boolean);
+  const avg=k=>{const v=con.map(c=>+c[k]).filter(Boolean);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
+  const freq=count(con,'freq');
+  const nf=con.filter(c=>c.freq).length;
+  const weeklyPlus=nf?((freq.daily||0)+(freq.weekly||0))/nf:null;
+  const sp=con.map(c=>SPEND_MID[c.spend]).filter(Boolean);
+  const comments=people.filter(p=>(p.concepts||{})[b.id]&&p.concepts[b.id].comment).map(p=>({text:p.concepts[b.id].comment,p:p.profile||{},c:p.concepts[b.id],dist:effDist(p,b),at:p.concepts[b.id].at||p.updatedAt||0})).sort((x,y)=>y.at-x.at);
+  return {n:people.length,nd:disc.length,nc:con.length,picks,writeins,concept:avg('concept'),location:avg('location'),weeklyPlus,
+    ticket:sp.length?sp.reduce((a,b)=>a+b,0)/sp.length:null,freq,when:count(con,'when',true),how:count(con,'how'),spend:count(con,'spend'),extras:count(con,'extras',true),comments};
+}
+const pct=(v,t)=>t?Math.round(100*v/t):0;
+function topOf(m){let best=null;for(const [k,v] of Object.entries(m))if(!best||v>best[1])best=[k,v];return best}
+
+// ---------- shared store ----------
+function setStatus(){
+  const el=$('#status'); if(!el)return;
+  el.classList.toggle('local',S.store==='local');
+  el.textContent=S.store==='live'?(STAGE==='staging'?'Test copy · connected':'Live · answers shared'):S.store==='local'?'Saved on this device only':'Connecting…';
+}
+// Backend: Google Apps Script web app (Code.gs) that stores answers in a Google Sheet.
+// Paste the deployed web app URL (ends in /exec) here:
+const API_URL='https://script.google.com/macros/s/AKfycbxgQHaGSkyc6ky3596PgzRLCugUZ-9110wGCGfnhqm9RK3fHDI83aWrL_AuMMDiIlGhPA/exec';
+function gs(fn,arg){
+  if(!API_URL)return Promise.reject(new Error('no backend'));
+  const test=STAGE==='staging';
+  if(fn==='getAnswers'||fn==='all'){
+    const act=fn==='all'?'all':'answers';
+    return fetch(API_URL+'?action='+act+(test?'&test=1':''),{redirect:'follow'}).then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error(j&&j.error||'server error');return j.result});
+  }
+  // The test copy only saves when the backend can keep test data separate (version 3+).
+  if(test&&!(S.backendVersion>=3))return Promise.reject(new Error('Saving is turned off in the test copy until the backend is updated.'));
+  const body=Object.assign({},arg||{},test?{test:true}:{});
+  return fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:fn,payload:body})})
+    .then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error(j&&j.error||'server error');return j.result});
+}
+function getRid(){
+  try{let v=localStorage.getItem('plotline-rid');if(!v){v='r'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('plotline-rid',v)}return v}
+  catch(e){if(!S.ridMem)S.ridMem='r'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);return S.ridMem}
+}
+function groupRows(rows){
+  const m={};
+  for(const row of rows||[]){
+    let d; try{d=JSON.parse(row.data)}catch(e){continue}
+    if(!d||!row.rid||!d.building)continue;
+    const p=m[row.rid]||(m[row.rid]={id:row.rid,profile:null,profileAt:0,discovery:{},concepts:{},updatedAt:0});
+    if(d.discovery)p.discovery[d.building]=d.discovery;
+    if(d.concept)p.concepts[d.building]=d.concept;
+    const at=+d.at||0;
+    if(d.profile&&at>=p.profileAt){p.profile=d.profile;p.profileAt=at}
+    p.updatedAt=Math.max(p.updatedAt,at);
+  }
+  return Object.values(m);
+}
+function connect(){
+  const timer=setTimeout(()=>{if(S.store==='connecting'){S.store='local';setStatus();render()}},12000);
+  const done=rows=>{clearTimeout(timer);S.live=groupRows(rows);S.store='live';S.liveReady=true;setStatus();const r=route();if(r.view!=='survey'||!S.touched)render()};
+  const fail=()=>{clearTimeout(timer);S.store='local';setStatus();render()};
+  gs('all').then(res=>{
+    if(res&&typeof res==='object'&&res.version){
+      S.backendVersion=res.version;
+      if(res.config&&typeof applyConfig==='function')applyConfig(res.config);
+      done(res.answers);
+    } else {
+      // Older backend: it only knows how to return answers.
+      S.backendVersion=1;
+      gs('getAnswers').then(done).catch(fail);
+    }
+  }).catch(fail);
+}
+function rowFor(b){
+  const p=S.mine.profile||{}, d=S.mine.discovery[b.id]||{}, c=S.mine.concepts[b.id]||{};
+  const lab=(map,v)=>v?(map[v]||v):'';
+  const labs=(map,arr)=>(arr||[]).map(v=>map[v]||v).join(', ');
+  return {
+    building:b.id, address:b.name,
+    picks:labs(LBL.cats,d.picks), writein:d.writein||'',
+    concept:c.concept||'', location:c.location||'',
+    freq:lab(LBL.freq,c.freq), when:labs(LBL.when,c.when), how:lab(LBL.how,c.how), spend:lab(LBL.spend,c.spend),
+    extras:labs(LBL.extras,c.extras), comment:c.comment||'',
+    town:lab(LBL.towns,p.town), band:DIST_LABEL[c.dist]||'', modes:labs(toMap(MODES),p.modes), trail:lab(toMap(TRAIL),p.trail), kids:lab(toMap(KIDS),p.kids)
+  };
+}
+let saving=Promise.resolve();
+function save(quiet,b){
+  saveLocal();
+  if(!b)return Promise.resolve(false);
+  const payload={rid:getRid(),row:rowFor(b),data:JSON.stringify({building:b.id,profile:S.mine.profile,discovery:S.mine.discovery[b.id]||null,concept:S.mine.concepts[b.id]||null,heard:S.mine.heard||null,src:ARRIVED_SRC,at:S.mine.updatedAt}),...(S.meta||{})};
+  saving=saving.then(()=>gs('submitAnswer',payload)).then(rows=>{
+    if(Array.isArray(rows)){S.live=groupRows(rows);S.store='live'}
+    setStatus(); return true;
+  }).catch(e=>{
+    S.store='local';setStatus();
+    if(!quiet)toast(STAGE==='staging'&&!(S.backendVersion>=3)?'Saving is turned off in the test copy until the backend is updated.':'Could not reach the server. Your answers are saved on this device; try again later.');
+    return false});
+  return saving;
+}
+
+// ---------- routing ----------
+function route(){
+  const h=(location.hash||'').replace('#','');
+  for(const b of BUILDINGS){ if(h===b.slug)return {view:'survey',b}; if(h===b.slug+'-results')return {view:'results',b}; }
+  for(const A of AREAS){ if(h==='area-'+A.slug)return {view:'area',area:A}; }
+  for(const b of BUILDINGS){ if(h==='flyer-'+b.slug)return {view:'flyer',b}; if(h==='report-'+b.slug)return {view:'report',b}; }
+  for(const A of AREAS){ if(h==='report-area-'+A.slug)return {view:'areareport',area:A}; }
+  if(h==='about')return {view:'about'};
+  if(h==='join')return {view:'join'};
+  if(h==='developers')return {view:'developers'};
+  if(h==='privacy')return {view:'privacy'};
+  if(h==='release-notes')return {view:'releases'};
+  return {view:'home'};
+}
+
+// ---------- pieces ----------
+function facade(kind){
+  const ground='<rect class="f-ground" x="0" y="150" width="320" height="10"/>';
+  const sale=(x,y)=>`<rect class="f-sign" x="${x}" y="${y}" width="58" height="18" rx="3"/><text class="f-text" x="${x+29}" y="${y+13}" text-anchor="middle">FOR SALE</text>`;
+  if(kind==='corner')return `<svg viewBox="0 0 320 160" role="img" aria-label="Single-story corner storefront">${ground}<rect class="f-wall" x="60" y="44" width="200" height="106"/><rect class="f-trim" x="56" y="36" width="208" height="12"/><rect class="f-sun" x="72" y="62" width="176" height="10"/><rect class="f-glass" x="74" y="80" width="62" height="56"/><rect class="f-glass" x="184" y="80" width="62" height="56"/><rect class="f-trim" x="146" y="84" width="28" height="66"/>${sale(76,96)}</svg>`;
+  if(kind==='wide')return `<svg viewBox="0 0 320 160" role="img" aria-label="Wide shop with garage doors">${ground}<rect class="f-wall" x="28" y="54" width="264" height="96"/><rect class="f-trim" x="28" y="46" width="264" height="10"/><rect class="f-glass" x="44" y="76" width="92" height="74"/><rect class="f-glass" x="150" y="76" width="92" height="74"/><g class="f-trim">${[90,104,118,132].map(y=>`<rect x="44" y="${y}" width="92" height="2"/><rect x="150" y="${y}" width="92" height="2"/>`).join('')}</g><rect class="f-trim" x="254" y="96" width="24" height="54"/>${sale(60,84)}</svg>`;
+  if(kind==='lot')return `<svg viewBox="0 0 320 160" role="img" aria-label="Vacant commercial lot">${ground}<rect class="f-ground" x="0" y="128" width="320" height="22" opacity=".6"/>${[30,70,250,290].map(x=>`<circle class="f-trim" cx="${x}" cy="118" r="14" opacity=".35"/><rect class="f-trim" x="${x-2}" y="118" width="4" height="22" opacity=".5"/>`).join('')}<rect class="f-trim" x="128" y="96" width="4" height="44"/><rect class="f-trim" x="188" y="96" width="4" height="44"/><rect class="f-sign" x="118" y="70" width="84" height="32" rx="3"/><text class="f-text" x="160" y="84" text-anchor="middle">LAND</text><text class="f-text" x="160" y="97" text-anchor="middle">FOR SALE</text></svg>`;
+  return `<svg viewBox="0 0 320 160" role="img" aria-label="Historic brick building">${ground}<rect class="f-brick" x="92" y="12" width="136" height="138"/><rect class="f-trim" x="88" y="8" width="144" height="8"/>${[108,146,184].map(x=>`<rect class="f-glass" x="${x}" y="28" width="28" height="36"/>`).join('')}<rect class="f-trim" x="92" y="76" width="136" height="6"/><rect class="f-glass" x="102" y="92" width="64" height="48"/><rect class="f-trim" x="178" y="92" width="38" height="58"/>${sale(105,104)}</svg>`;
+}
+function art(b,big){
+  if(IMG[b.id])return `<img src="${IMG[b.id]}" alt="Illustration of ${esc(b.concept.label)} at ${esc(b.name)}" loading="lazy" width="1200" height="670">`;
+  return `<div class="art-sketch">${facade(b.facade)}</div>`;
+}
+function chips(name,opts,{multi=false,max=0,cls=''}={}){
+  const d=S.draft||{}, cur=d[name];
+  const on=v=>multi?(cur||[]).includes(v):cur===v;
+  return `<div class="chips ${cls}" data-name="${name}" data-multi="${multi?1:0}" data-max="${max}" role="group">${opts.map(([v,l])=>`<button type="button" class="chip" data-chip="${esc(v)}" aria-pressed="${on(v)}">${esc(l)}</button>`).join('')}</div>`;
+}
+function scale(name,lo,hi){
+  return `${chips(name,[['1','1'],['2','2'],['3','3'],['4','4'],['5','5']],{cls:'scale'})}<div class="scale-ends"><span>1 · ${lo}</span><span>${hi} · 5</span></div>`;
+}
+function bars(map,opts,total,{sort=false,limit=0}={}){
+  let rows=opts.map(([k,l])=>[k,l,map[k]||0]);
+  if(sort)rows.sort((a,b)=>b[2]-a[2]);
+  if(limit)rows=rows.slice(0,limit);
+  const max=Math.max(1,...rows.map(r=>r[2]));
+  return `<div class="bars">${rows.map(([k,l,v],i)=>`<div class="br${sort&&i===0&&v?' top':''}"><span class="t" title="${esc(l)}">${esc(l)}</span><span class="track"><span class="fill" style="width:${(100*v/max).toFixed(1)}%"></span></span><span class="v">${pct(v,total)}%</span></div>`).join('')}</div>`;
+}
+function modeSwitch(){
+  const m=activeMode(), n=liveRespondents().length;
+  return `<div class="seg" role="group" aria-label="Which responses to show"><button type="button" data-act="mode" data-v="live" aria-pressed="${m==='live'}">Real responses (${n})</button><button type="button" data-act="mode" data-v="demo" aria-pressed="${m==='demo'}">Simulated demo</button></div>`;
+}
+function demoBanner(){
+  if(activeMode()!=='demo')return '';
+  return `<div class="banner"><b>Simulated data.</b> These ${DEMO.length} respondents are made up to show how results will look. Switch to real responses once people start answering.</div>`;
+}
+
+
+// ---------- map ----------
+let MAP=null, MARKERS={};
+function sitePin(b){
+  const st=stats(b,{who:'all'}); const t=topOf(st.picks);
+  const icon=L.divIcon({className:'pin-wrap',html:`<span class="pin"><b>${esc(b.letter)}</b></span>`,iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-36]});
+  const html=`<div class="pop"><strong>${esc(b.letter)} · ${esc(b.name)}</strong><span class="pop-idea">Suggested idea: ${esc(b.concept.title)}</span>
+    <span class="pop-meta">${esc(b.tag)} · ${esc(b.size)}</span>
+    ${t?`<span class="pop-meta">Top wish so far: <b>${esc(LBL.cats[t[0]])}</b></span>`:''}
+    ${b.approx?'<span class="pop-meta"><i>Pin location is approximate.</i></span>':''}
+    <span class="pop-links"><a href="#${b.slug}">Weigh in</a><a href="#${b.slug}-results">Results</a></span></div>`;
+  return L.marker([b.lat,b.lng],{icon,title:b.name}).bindPopup(html,{maxWidth:240,autoPanPadding:[20,20]});
+}
+function initMap(r){
+  const el=document.getElementById('map');
+  if(MAP){MAP.remove();MAP=null;MARKERS={}}
+  if(!el)return;
+  if(!window.L){el.innerHTML='<p class="empty">The map could not load. Check your connection and refresh.</p>';return}
+  const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+  MAP=L.map(el,{scrollWheelZoom:false,dragging:!L.Browser.mobile,tap:false,zoomControl:true});
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,className:dark?'tiles-dark':'',
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(MAP);
+  const css=getComputedStyle(document.documentElement);
+  const accent=css.getPropertyValue('--accent').trim()||'#0D6B64', sun=css.getPropertyValue('--sun').trim()||'#D99A12';
+  GEO.trail.forEach(seg=>L.polyline(seg,{color:sun,weight:4,opacity:.9}).bindTooltip('Poudre River Trail',{sticky:true}).addTo(MAP));
+  if(r.view==='area'){
+    const A=r.area; MAP.setView(A.center,A.zoom);
+    if(A.walk){
+      const c=A.walkCenter||A.center;
+      L.circle(c,{radius:805,color:accent,weight:2,dashArray:'6 6',fillColor:accent,fillOpacity:.07,interactive:false}).addTo(MAP);
+      L.marker([c[0]+0.0074,c[1]],{interactive:false,icon:L.divIcon({className:'map-label',html:'<span>10-minute walk (½ mile)</span>',iconSize:null})}).addTo(MAP);
+    }
+    sitesIn(A).forEach(b=>{MARKERS[b.id]=sitePin(b).addTo(MAP)});
+  } else {
+    const pts=[];
+    AREAS.forEach(A=>{
+      const sites=sitesIn(A);
+      sites.forEach(b=>{pts.push([b.lat,b.lng]);L.circleMarker([b.lat,b.lng],{radius:6,color:'#fff',weight:2,fillColor:accent,fillOpacity:1}).bindTooltip(`${esc(A.name)}: ${esc(b.name)}`).on('click',()=>{location.hash='area-'+A.slug}).addTo(MAP)});
+      const m=L.marker(A.center,{icon:L.divIcon({className:'area-wrap',html:`<span class="area-pin pos-${A.labelPos||'s'}">${esc(A.name)}<small>${sites.length} site${sites.length===1?'':'s'}</small></span>`,iconSize:null})}).addTo(MAP);
+      m.on('click',()=>{location.hash='area-'+A.slug});
+    });
+    MAP.fitBounds(pts,{paddingTopLeft:[30,40],paddingBottomRight:[30,60],maxZoom:13});
+    MAP.zoomControl.setPosition('bottomleft');
+  }
+  setTimeout(()=>MAP&&MAP.invalidateSize(),200);
+}
+function locate(id){
+  const m=MARKERS[id]; const el=document.getElementById('map');
+  if(!m||!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  MAP.setView(m.getLatLng(),17); m.openPopup();
+}
+
+// ---------- views ----------
+function siteCard(b){
+  const st=stats(b,{who:'all'}); const t=topOf(st.picks);
+  const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
+  return `<article class="card"><a class="art idea" href="#${b.slug}" aria-label="Weigh in on ${esc(b.name)}">${art(b)}<span class="pin pin-on-art" aria-hidden="true"><b>${esc(b.letter)}</b></span><span class="idea-chip"><small>Suggested idea</small>${esc(b.concept.title)}</span></a><div class="body">
+    <div><span class="tag">${esc(b.tag)}</span></div>
+    <h3 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h3>
+    <div class="meta"><span>${esc(b.size)}</span><span>${esc(b.price)}</span><span>${esc(b.notes)}</span></div>
+    <p class="small muted"><b>What could go here?</b> ${esc(b.concept.blurb)} ${IMG[b.id]?'The picture is an illustration of one possible idea, not a real plan.':'This is one possible idea, not a real plan.'}</p>
+    <div class="wish">${t?`<span class="muted small">Top wish so far</span><b>${esc(LBL.cats[t[0]])}</b><span class="muted small num">${pct(t[1],st.nd)}% of ${st.nd}</span>`:`<span class="muted small">No answers yet. Be the first.</span>`}</div>
+    <div class="row"><a class="btn primary" href="#${b.slug}">${answered?'Update my answers':'Weigh in'}</a><a class="btn ghost" href="#${b.slug}-results">See results</a><button type="button" class="btn ghost" data-act="locate" data-v="${b.id}">Show on map</button><button type="button" class="btn ghost" data-act="share" data-v="${b.id}">Share</button></div>
+  </div></article>`;
+}
+function viewHome(){
+  const areaCards=AREAS.map(A=>{
+    const sites=sitesIn(A);
+    const n=new Set(); sites.forEach(b=>dataset().forEach(p=>{if((p.discovery||{})[b.id]||(p.concepts||{})[b.id])n.add(p.id)}));
+    return `<article class="area-card">
+      <a class="area-head" href="#area-${A.slug}"><span class="label">${esc(A.town)}</span><h3>${esc(A.name)}</h3><p class="small muted">${esc(A.blurb)}</p></a>
+      <ul class="area-sites">${sites.map(b=>`<li><a href="#${b.slug}"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span><b>${esc(b.name.split(' · ')[0])}</b><small>Idea: ${esc(b.concept.title)}</small></span></a></li>`).join('')}</ul>
+      <div class="row" style="align-items:center;justify-content:space-between"><span class="small muted num">${n.size} ${n.size===1?'person has':'people have'} weighed in</span><a class="btn primary" href="#area-${A.slug}">See ${sites.length} site${sites.length===1?'':'s'}</a></div>
+    </article>`}).join('');
+  return `<section class="hero">
+    <span class="label">Northern Colorado · Timnath & Windsor</span>
+    <h1>What should go here?</h1>
+    <p>Buildings and land around town are for sale, for lease or being planned. Pick an area, then tell buyers, developers and your town what you would actually use. Every result is public.</p>
+    <div class="pledge"><span>No name or address</span><span>About 2 minutes per site</span><span>Results published for everyone</span><span>We share opinions, never your info</span></div>
+    <p class="small"><a href="#about">Why Plotline? For residents and developers →</a></p>
+  </section>
+  <section class="section">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><span><b>Pick an area</b>, then a building or lot in it, and say what you would want there.</span></li>
+      <li><span><b>Rate one idea</b> we are testing, like a grocery store or a coffee shop, and say how often you would go.</span></li>
+      <li><span><b>Answer a few quick questions</b> about where you live and how you get around. Once, never your name.</span></li>
+      <li><span><b>See the results right away.</b> Filter by neighbors in walking distance, people from Windsor or Fort Collins, trail riders and more.</span></li>
+    </ol>
+  </section>
+  <section class="section">
+    <h2>Areas</h2>
+    <p class="small muted">Tap an area on the map or below. Each dot is a building or lot open for feedback. The gold line is the Poudre River Trail.</p>
+    <div id="map" class="map" role="region" aria-label="Map of areas open for feedback"></div>
+    <div class="row" style="align-items:center;justify-content:flex-end">${modeSwitch()}</div>
+    ${demoBanner()}
+    <div class="area-grid">${areaCards}</div>
+  </section>
+  <section class="section">
+    <div class="cta-card"><div><h3>Want a say in the next project?</h3><p class="small muted">Get a 2-minute survey when something new is proposed near you.</p></div><a class="btn primary" href="#join">Get notified</a></div>
+  </section>
+  <section class="section">
+    <div class="note"><b>This is an early test version.</b> Listing details come from public commercial listing sites as of November 2026 and may be out of date. Confirm with the listing broker. Developer, owner or city? <a href="#developers">Request a survey for your area</a>.</div>
+  </section>`;
+}
+function viewArea(A){
+  const sites=sitesIn(A);
+  return `<a class="back" href="#home">← All areas</a>
+  <section class="hero">
+    <span class="label">${esc(A.town)} · Area</span>
+    <h1>${esc(A.name)}</h1>
+    <p>${esc(A.blurb)} Tell buyers and future business owners what you would actually spend money on.</p>
+    <div class="row"><button type="button" class="btn ghost" data-act="share-area" data-v="${A.id}">Share this area</button><a class="btn ghost" href="#report-area-${A.slug}">Area report</a></div>
+  </section>
+  <section class="section">
+    <h2>Map</h2>
+    <p class="small muted">Tap a pin or a letter below to see the suggested idea.${A.walk?' The dashed circle is about a 10-minute walk.':''} The gold line is the Poudre River Trail. Pinch to zoom.</p>
+    <div id="map" class="map" role="region" aria-label="Map of ${esc(A.name)}"></div>
+    <div class="legend">${sites.map(b=>`<button type="button" class="legend-item" data-act="locate" data-v="${b.id}"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span><b>${esc(b.name.split(' · ')[0])}</b><small>${esc(b.concept.title)}</small></span></button>`).join('')}</div>
+  </section>
+  <section class="section">
+    <div class="row" style="align-items:center;justify-content:space-between"><h2>Open for feedback</h2>${modeSwitch()}</div>
+    ${demoBanner()}
+    <div class="cards">${sites.map(siteCard).join('')}</div>
+  </section>
+  <section class="section">
+    <div class="cta-card"><div><h3>Want a say in the next project?</h3><p class="small muted">Get a 2-minute survey when something new is proposed near you.</p></div><a class="btn primary" href="#join">Get notified</a></div>
+  </section>`;
+}
+
+function initDraft(b){
+  const d=(S.mine.discovery||{})[b.id]||{}, c=(S.mine.concepts||{})[b.id]||{}, p=S.mine.profile||{};
+  S.draft={picks:(d.picks||[]).slice(),writein:d.writein||'',
+    concept:c.concept?String(c.concept):undefined,location:c.location?String(c.location):undefined,how:c.how,when:(c.when||[]).slice(),freq:c.freq,spend:c.spend,extras:(c.extras||[]).slice(),comment:c.comment||'',
+    heard:S.mine.heard||SRC_TO_HEARD[ARRIVED_SRC]||undefined,town:p.town,dist:c.dist,modes:(p.modes||[]).slice(),trail:p.trail,kids:p.kids};
+  S.draftFor=b.id; S.touched=false; S.editProfile=false; S.formStart=Date.now();
+}
+function profileSummary(p){
+  const bits=[LBL.towns[p.town]||'',p.trail==='weekly'?'Trail weekly':p.trail==='monthly'?'Trail monthly':'',p.kids==='yes'?'Kids at home':''].filter(Boolean);
+  return bits.map(esc).join(' · ');
+}
+function viewSurvey(b){
+  if(S.draftFor!==b.id)initDraft(b);
+  const answered=(S.mine.discovery||{})[b.id]||(S.mine.concepts||{})[b.id];
+  const needProfile=!S.mine.profile||S.editProfile;
+  const d=S.draft;
+  const A=AREA[b.area];
+  return `<a class="back" href="#area-${A.slug}">← ${esc(A.name)}</a>
+  <section class="bhead"><span class="tag" style="justify-self:start">${esc(b.tag)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1><p class="muted">${esc(b.size)} · ${esc(b.notes)}</p></section>
+  <form id="survey" novalidate>
+    <div class="q">
+      <div class="qhead"><span class="step">Step 1 of ${needProfile?3:2}</span><h2>What would you want here?</h2><p class="muted small">Pick up to 3. The suggested ${esc(b.concept.title.toLowerCase())} is just one option. Pick whatever you would actually use.</p></div>
+      ${chips('picks',CATS,{multi:true,max:3})}
+      <div class="field"><label class="lbl" for="writein">Something else? <em>Optional</em></label><input type="text" id="writein" data-field="writein" maxlength="80" placeholder="e.g. a hardware store" value="${esc(d.writein)}"></div>
+      <div class="field"><span class="lbl">How far do you live from here?</span>${chips('dist',DIST)}</div>
+    </div>
+    <div class="q">
+      <div class="qhead"><span class="step">Step 2 of ${needProfile?3:2}</span><h2>We’re testing an idea</h2></div>
+      ${IMG[b.id]?`<figure class="mock"><img src="${IMG[b.id]}" alt="Illustration of ${esc(b.concept.label)} at this location" loading="lazy" width="1200" height="670"><figcaption>Illustration of the idea only. Not a real design, plan or proposal.</figcaption></figure>`:''}
+      <div class="concept"><span class="ico" aria-hidden="true">${esc(b.concept.mark)}</span><div><b>${esc(b.concept.title)}</b><p class="small muted">${esc(b.concept.blurb)}</p></div></div>
+      <div class="field"><span class="lbl">How do you feel about ${esc(b.concept.label)}?</span>${scale('concept','Hate it','Love it')}</div>
+      <div class="field"><span class="lbl">How do you feel about it <i>in this spot</i>?</span>${scale('location','Bad spot','Great spot')}</div>
+      <div class="field"><span class="lbl">How often would you go?</span>${chips('freq',FREQ)}</div>
+      <div class="field"><span class="lbl">When would you go? <em>Pick any</em></span>${chips('when',WHEN,{multi:true})}</div>
+      <div class="field"><span class="lbl">How would you get there?</span>${chips('how',HOW)}</div>
+      <div class="field"><span class="lbl">What would you spend on a typical visit?</span>${chips('spend',SPEND)}</div>
+      <div class="field"><span class="lbl">What would make it a must-stop? <em>Pick any</em></span>${chips('extras',EXTRAS,{multi:true})}</div>
+      <div class="field"><label class="lbl" for="comment">Anything the buyer should hear? <em>Optional. Published without your name after a quick review. Please leave out names and personal details.</em></label><textarea id="comment" data-field="comment" maxlength="500" placeholder="Love the idea, but parking at school pickup is already tough…">${esc(d.comment)}</textarea></div>
+    </div>
+    ${needProfile?`<div class="q">
+      <div class="qhead"><span class="step">Step 3 of 3 · asked once</span><h2>A little about you</h2><p class="muted small">No name, no address. This lets buyers see what nearby neighbors want compared with visitors from Windsor or Fort Collins.</p></div>
+      <div class="field"><span class="lbl">Where do you live?</span>${chips('town',TOWNS)}</div>
+      <div class="field"><span class="lbl">How do you usually get around town? <em>Pick any</em></span>${chips('modes',MODES,{multi:true})}</div>
+      <div class="field"><span class="lbl">How often do you use the Poudre River Trail?</span>${chips('trail',TRAIL)}</div>
+      <div class="field"><span class="lbl">Kids at home? <em>Optional</em></span>${chips('kids',KIDS)}</div>
+      ${S.mine.heard?'':`<div class="field"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}
+    </div>`:`<div class="q"><div class="saved-profile"><span class="label">About you</span><span>${profileSummary(S.mine.profile)}</span><button type="button" class="btn ghost" data-act="edit-profile" style="padding:8px 12px">Edit</button></div>${S.mine.heard?'':`<div class="field" style="margin-top:14px"><span class="lbl">How did you hear about Plotline? <em>Optional</em></span>${chips('heard',HEARD)}</div>`}</div>`}
+    <div style="display:grid;gap:10px;margin-top:18px">
+      <div class="hp" aria-hidden="true"><label for="hp-survey">Leave this field empty</label><input type="text" id="hp-survey" name="hp-survey" tabindex="-1" autocomplete="off"></div>
+      <p class="error" id="form-error" role="alert" hidden></p>
+      <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public. Comments are reviewed, then published without who wrote them. Groups smaller than 10 people are flagged as too small to trust. <a href="#privacy">Privacy policy</a></p>
+    </div>
+  </form>`;
+}
+
+function viewResults(b){
+  const f=S.filters, st=stats(b,f);
+  const whoChips=`<div class="chips">${WHO.map(([v,l])=>`<button type="button" class="chip" data-act="who" data-v="${v}" aria-pressed="${f.who===v}">${esc(l)}</button>`).join('')}</div>`;
+  const tog=(k,l)=>`<button type="button" class="chip" data-act="flag" data-v="${k}" aria-pressed="${!!f[k]}">${esc(l)}</button>`;
+  const flagChips=`<div class="chips">${tog('trail','Trail weekly+')}${tog('bike','Would bike there')}${tog('weekend','Weekend mornings')}${tog('kids','Kids at home')}</div>`;
+  let body;
+  if(!st.n){
+    body=`<div class="panel empty">No one matches these filters yet.${activeMode()==='live'?' Share the survey link to get answers, or switch to the simulated demo.':''}</div>`;
+  } else {
+    const tp=topOf(st.picks), tx=topOf(st.extras);
+    const headline=(st.nc&&st.weeklyPlus!=null)?`${Math.round(st.weeklyPlus*100)}% would visit ${esc(b.concept.label)} weekly or more${tx?`, and “${esc(LBL.extras[tx[0]])}” is the top ask`:''}.`:(tp?`Top wish: ${esc(LBL.cats[tp[0]])}.`:`${st.n} ${st.n===1?'person has':'people have'} weighed in.`);
+    const quotes=st.comments.slice(0,6).map(q=>{
+      const tags=[LBL.towns[q.p.town]||'',q.dist?DIST_LABEL[q.dist]+' away':'',q.p.trail==='weekly'?'trail weekly':'',`rated ${q.c.concept}/5`].filter(Boolean).join(' · ');
+      return `<div class="quote"><span>“${esc(q.text)}”</span><small>${esc(tags)}</small></div>`}).join('');
+    body=`
+    ${st.n<10?`<div class="warnbox"><b>Only ${st.n} ${st.n===1?'person matches':'people match'}.</b> Treat this as a hint, not a result. The public version hides groups under 10.</div>`:''}
+    <p class="headline">${headline}</p>
+    <div class="kpis">
+      <div class="kpi"><b>${st.n}</b><span>people match</span></div>
+      <div class="kpi"><b>${st.concept!=null?st.concept.toFixed(1):'–'}</b><span>idea score (of 5)</span></div>
+      <div class="kpi"><b>${st.location!=null?st.location.toFixed(1):'–'}</b><span>location score (of 5)</span></div>
+      <div class="kpi"><b>${st.ticket!=null?'$'+st.ticket.toFixed(0):'–'}</b><span>typical spend per visit</span></div>
+    </div>
+    <div class="panel"><h3>What people want here</h3><p class="small muted">${st.nd} answered · up to 3 picks each</p>${bars(st.picks,CATS,st.nd,{sort:true,limit:8})}
+      ${st.writeins.length?`<p class="small"><b>Write-ins:</b> ${st.writeins.slice(0,8).map(esc).join(', ')}</p>`:''}</div>
+    <div class="panel"><h3>The idea: ${esc(b.concept.title)}</h3><p class="small muted">${st.nc} rated it</p>
+      <div class="grid2">
+        <div><p class="label" style="margin-bottom:8px">How often</p>${bars(st.freq,FREQ,st.nc)}</div>
+        <div><p class="label" style="margin-bottom:8px">When</p>${bars(st.when,WHEN,st.nc)}</div>
+        <div><p class="label" style="margin-bottom:8px">Getting there</p>${bars(st.how,HOW,st.nc)}</div>
+        <div><p class="label" style="margin-bottom:8px">Spend per visit</p>${bars(st.spend,SPEND,st.nc)}</div>
+      </div>
+      <div><p class="label" style="margin-bottom:8px">Must-haves</p>${bars(st.extras,EXTRAS,st.nc,{sort:true,limit:5})}</div>
+    </div>
+    <div class="panel"><h3>What people said</h3><p class="small muted">Comments appear after a quick review, without names.</p>${quotes||'<p class="muted small">No reviewed comments from this group yet.</p>'}</div>`;
+  }
+  const A=AREA[b.area];
+  return `<a class="back" href="#area-${A.slug}">← ${esc(A.name)}</a>
+  <section class="bhead"><span class="label">Public results · ${esc(A.name)}</span><h1 class="lettered"><span class="pin pin-sm" aria-hidden="true"><b>${esc(b.letter)}</b></span><span>${esc(b.name)}</span></h1></section>
+  <div style="display:grid;gap:14px">
+    <div class="row" style="align-items:center;justify-content:space-between">${modeSwitch()}<span class="row"><a class="btn ghost" href="#${b.slug}" style="padding:9px 12px">Add my answers</a><button type="button" class="btn ghost" data-act="share" data-v="${b.id}" style="padding:9px 12px">Share</button><a class="btn ghost" href="#report-${b.slug}" style="padding:9px 12px">Sponsor report</a></span></div>
+    ${demoBanner()}
+    <div class="filters">
+      <span class="label">Quick views</span>
+      <div class="presets"><button type="button" class="preset" data-act="preset" data-v="walk">Neighbors within walking distance</button><button type="button" class="preset" data-act="preset" data-v="trail">Windsor trail riders on weekend mornings</button><button type="button" class="preset" data-act="preset" data-v="all">Everyone</button></div>
+      <span class="label">Who</span>${whoChips}
+      <span class="label">Narrow down</span>${flagChips}
+    </div>
+    ${body}
+    <div class="cta-card"><div><h3>Thanks for weighing in.</h3><p class="small muted">Want a say in the next project near you? We will send you a 2-minute survey.</p></div><a class="btn primary" href="#join">Get notified</a></div>
+    <div class="panel" id="feedback-panel">
+      <h3>What do you think of this idea?</h3>
+      <p class="small muted">We are testing whether neighbors would use something like this. Was it easy? What was confusing? What would make you come back? Anonymous. <a href="#privacy">Privacy policy</a></p>
+      <textarea id="fb" maxlength="1500" placeholder="Honest thoughts welcome…"></textarea>
+      <div class="hp" aria-hidden="true"><label for="hp-fb">Leave this field empty</label><input type="text" id="hp-fb" name="hp-fb" tabindex="-1" autocomplete="off"></div>
+      <div class="row"><button type="button" class="btn primary" data-act="feedback">Send feedback</button></div>
+    </div>
+  </div>`;
+}
+
+
+function viewAbout(){
+  const item=(t,d)=>`<li><b>${t}</b><span>${d}</span></li>`;
+  return `<section class="hero">
+    <span class="label">About Plotline</span>
+    <h1>Build what the neighborhood will actually use.</h1>
+    <p>Empty buildings get filled one way or another. Plotline makes sure the people who live here are asked first, and that the people investing here know what will work before they spend a dollar.</p>
+    <p class="pull">Plotline puts numbers to the conversations neighbors already have at birthday parties and backyard barbecues.</p>
+  </section>
+  <div class="about-grid">
+    <section class="side">
+      <span class="label">For residents</span>
+      <h2>Have a say before the lease is signed.</h2>
+      <ul class="points">
+        ${item('Get asked early.','Most decisions about what opens on Main Street happen privately, long before a public hearing. Your answers reach buyers and business owners while the choice is still open.')}
+        ${item('Say what is missing.','Nobody needs a sixth coffee chain. If what the area really lacks is a grocery store, a gas station or a place for kids, say so. That is the gap a smart business will fill.')}
+        ${item('Rate the idea and the spot separately.','You might love a drive-thru chicken place but not next to the elementary school at pickup time. Plotline asks about the idea and the location as two different questions.')}
+        ${item('Stay anonymous.','No name, no address. Four quick questions about where you live and how you get around, so results can show what nearby neighbors want compared with visitors.')}
+      </ul>
+      <div class="row"><a class="btn primary" href="#home">Weigh in on a building</a><a class="btn ghost" href="#join">Get notified about new projects</a></div>
+    </section>
+    <section class="side">
+      <span class="label">For developers & business owners</span>
+      <h2>Know the demand before you build.</h2>
+      <ul class="points">
+        ${item('Stop guessing.','A coffee shop is the easy guess. If neighbors drive 15 minutes for groceries or gas, that is the real gap, and the business that fills it has customers on day one.')}
+        ${item('See who your customers are.','Split results by neighbors in walking distance, nearby towns, trail riders, families and time of day. For example: Windsor cyclists on Saturday mornings, and what they would spend.')}
+        ${item('Find problems while they are cheap to fix.','Comments surface traffic, parking and noise concerns early enough to design around them instead of fighting them at a hearing.')}
+        ${item('Show you listened.','Neutral, public results give council and neighbors evidence that the project reflects what the community asked for.')}
+      </ul>
+      <a class="btn primary" href="#developers">See Plotline On Demand</a>
+    </section>
+  </div>
+  <section class="section">
+    <div class="promise"><span class="label">Our promise</span><p class="promise-line">We sell what the neighborhood thinks. Never who you are.</p><p>Developers and business owners pay to hear combined, anonymous answers and comments. They never get your name, email, phone or anything that identifies you, and we never sell or share your contact info.</p></div>
+  </section>
+  <section class="section">
+    <h2>How we keep it fair</h2>
+    <ul class="points fair">
+      ${item('Every result is public.','Whoever sponsors a survey cannot hide or edit the results.')}
+      ${item('Neutral questions.','Every building gets the same questions, and every idea is illustrated in the same style so no option looks better just because of the picture.')}
+      ${item('No personal information in answers.','Surveys never ask for names or addresses. Comments are published without who wrote them.')}
+      ${item('Your contact info stays with us.','If you sign up for notifications, your email or phone is kept separate from your answers and is never shared with developers.')}
+      ${item('Small groups are flagged.','Any filter with fewer than 10 people is marked as a hint, not a result.')}
+    </ul>
+  </section>`;
+}
+
+function viewJoin(){
+  const towns=TOWNS.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('');
+  return `<section class="hero">
+    <span class="label">Resident panel</span>
+    <h1>Be on call for your neighborhood.</h1>
+    <p>When someone proposes a new business or project near you, we will send you a 2-minute survey so your voice counts before decisions are made.</p>
+    <div class="pledge"><span>About 1\u20132 surveys a month</span><span>Only projects near you</span><span>Your info is never sold or shared</span></div>
+  </section>
+  <section class="section">
+    <div class="q" id="join-form">
+      <div class="qhead"><h2>Get notified about new projects</h2><p class="muted small">Email, text, or both. You can stop anytime.</p></div>
+      <div class="field"><label class="lbl" for="j-email">Email</label><input type="email" id="j-email" maxlength="120" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label class="lbl" for="j-phone">Mobile number <em>Optional, for texts</em></label><input type="tel" id="j-phone" maxlength="20" autocomplete="tel" placeholder="(970) 555-0123"></div>
+      <label class="check"><input type="checkbox" id="j-sms"><span>Text me about new surveys near me. Up to 4 texts a month. Message and data rates may apply. Reply STOP to opt out.</span></label>
+      <div class="field"><label class="lbl" for="j-town">Where do you live?</label><select id="j-town"><option value="">Choose one</option>${towns}</select></div>
+      <div class="field"><label class="lbl" for="j-zip">ZIP code</label><input type="text" id="j-zip" inputmode="numeric" maxlength="5" placeholder="80547"></div>
+      <div class="field"><label class="lbl" for="j-near">Nearest intersection <em>Optional. Not your address; it helps us send projects near you.</em></label><input type="text" id="j-near" maxlength="80" placeholder="e.g. Main St & 4th Ave"></div>
+      <div class="hp" aria-hidden="true"><label for="hp-join">Leave this field empty</label><input type="text" id="hp-join" name="hp-join" tabindex="-1" autocomplete="off"></div>
+      <p class="error" id="j-error" role="alert" hidden></p>
+      <div class="row"><button type="button" class="btn primary block" data-act="join">Notify me</button></div>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> Your contact info is stored separately from your survey answers and is never sold or shared with developers or anyone else. We use it only to send you surveys. <a href="#privacy">Privacy policy</a></p>
+    </div>
+  </section>`;
+}
+
+function viewDevelopers(){
+  const step=(t,d)=>`<li><span><b>${t}</b> ${d}</span></li>`;
+  const item=(t,d)=>`<li><b>${t}</b><span>${d}</span></li>`;
+  return `<section class="hero">
+    <span class="label">Plotline On Demand</span>
+    <h1>Ask the neighborhood before you build.</h1>
+    <p>Resident surveys on demand for developers, brokers and businesses. Tell us about your project and how many residents you need to hear from. We handle the rest.</p>
+    <div class="row"><button type="button" class="btn primary" data-act="to-request">Request a survey</button><a class="btn ghost" href="#home">See a live example</a></div>
+  </section>
+  <section class="section">
+    <h2>How it works</h2>
+    <ol class="steps">
+      ${step('Tell us about the project.','The address, what you are considering, and any renderings or site plans.')}
+      ${step('We write neutral questions.','Same format residents already know: what they want there, how they rate your idea and the location, how often they would go and what they would spend. You review it for accuracy.')}
+      ${step('We reach residents.','We notify our resident panel near your site, then add postcards, QR signs on the property and local ads until we reach your target.')}
+      ${step('You get the results.','Live results as answers come in, split by distance, town, household and travel habits, plus the themes in residents\u2019 comments.')}
+    </ol>
+  </section>
+  <section class="section">
+    <h2>Survey a whole area</h2>
+    <p>Group the sites you care about into one area, like a portfolio: a downtown, an interstate corridor, or every parcel you control. Residents see the area on a map and weigh in on each site, so you can compare demand across sites before deciding what goes where.</p>
+    <p class="small muted">Cities can do the same for a corridor or district plan. See <a href="#home">the live areas</a> for examples.</p>
+  </section>
+  <section class="section">
+    <h2>Choose your reach</h2>
+    <div class="tiers">
+      <div class="tier"><span class="label">Neighborhood</span><b class="num">200+</b><span>residents</span><p class="small muted">Nearby neighbors in walking and short-drive distance. Best for a single storefront.</p></div>
+      <div class="tier"><span class="label">Town-wide</span><b class="num">1,000+</b><span>residents</span><p class="small muted">The whole town, with nearby neighbors broken out. Best for a new restaurant, grocery or larger site.</p></div>
+      <div class="tier"><span class="label">Regional</span><b class="num">5,000+</b><span>residents</span><p class="small muted">Timnath plus Windsor, Severance and east Fort Collins. Best for regional retail and multi-use projects.</p></div>
+    </div>
+    <p class="small muted">Pricing depends on reach and timeline. We quote it up front.</p>
+  </section>
+  <section class="section">
+    <h2>The ground rules</h2>
+    <p class="muted small">These rules are why residents trust Plotline, and why your results carry weight at a hearing.</p>
+    <ul class="points fair">
+      ${item('You see results first.','You get a 14-day head start to review the results before they are published.')}
+      ${item('Results are then public.','Every survey\u2019s results are published. Sponsors cannot hide or edit them.')}
+      ${item('You respond publicly.','You reply to the top concerns residents raise. That reply is what turns critics into customers.')}
+      ${item('You buy opinions, not data.','You get combined, segmented results and anonymous comments. Never names, contact info or individual answers. We do not sell resident data to anyone.')}
+    </ul>
+  </section>
+  <section class="section" id="request">
+    <div class="q">
+      <div class="qhead"><span class="label">Plotline On Demand</span><h2>Request a survey</h2><p class="muted small">We will get back to you with a plan and a quote. <a href="#privacy">Privacy policy</a></p></div>
+      <div class="field"><label class="lbl" for="r-name">Your name and company</label><input type="text" id="r-name" maxlength="120" autocomplete="name"></div>
+      <div class="field"><label class="lbl" for="r-contact">Email or phone</label><input type="text" id="r-contact" maxlength="120" autocomplete="email"></div>
+      <div class="field"><label class="lbl" for="r-prop">Project address</label><input type="text" id="r-prop" maxlength="160" placeholder="e.g. 4100 Main St, Timnath"></div>
+      <div class="field"><label class="lbl" for="r-msg">What are you considering?</label><textarea id="r-msg" maxlength="800" placeholder="A drive-thru restaurant, a grocery store, mixed-use with apartments\u2026"></textarea></div>
+      <div class="field"><label class="lbl" for="r-reach">How many residents do you want to hear from?</label><select id="r-reach"><option>Not sure yet</option><option>Neighborhood (200+)</option><option>Town-wide (1,000+)</option><option>Regional (5,000+)</option></select></div>
+      <div class="field"><label class="lbl" for="r-when">When do you need results?</label><select id="r-when"><option>Flexible</option><option>Within a month</option><option>Within 2\u20133 months</option><option>Before a scheduled hearing</option></select></div>
+      <div class="hp" aria-hidden="true"><label for="hp-request">Leave this field empty</label><input type="text" id="hp-request" name="hp-request" tabindex="-1" autocomplete="off"></div>
+      <p class="error" id="r-error" role="alert" hidden></p>
+      <div class="row"><button type="button" class="btn primary" data-act="od-request">Send request</button></div>
+    </div>
+  </section>`;
+}
+
+function viewPrivacy(){
+  const h=(t)=>`<h2>${t}</h2>`;
+  return `<article class="policy">
+  <div class="banner"><b>Alpha draft.</b> Plotline is in early testing. This policy is being reviewed by an attorney and may change. We will post any update here with a new date.</div>
+  <span class="label">Privacy policy</span>
+  <h1>Plotline Privacy Policy</h1>
+  <p class="muted">Last updated November 7, 2026</p>
+  <p>Plotline is an early-stage project based in Timnath, Colorado (\u201cPlotline,\u201d \u201cwe,\u201d \u201cus\u201d). This policy explains what we collect when you use our website and services, how we use it, and the choices you have.</p>
+
+  <div class="promise"><span class="label">Our promise</span><p class="promise-line">We sell what the neighborhood thinks. Never who you are.</p><p>Developers, property owners, brokers and business owners may pay us to run surveys and to see the combined, anonymous results. They never receive your name, email address, phone number, or any information we believe could identify you. We do not sell, rent or trade personal information to anyone.</p></div>
+
+  ${h('What we collect')}
+  <h3>When you answer a survey</h3>
+  <ul>
+    <li>Your answers: what you would like in a building or lot, your ratings of an idea and a location, how often you would visit, when, how you would get there, what you would spend, what would make it a must-stop, and any comment you choose to write.</li>
+    <li>A few questions about you, asked once: the town you live in, roughly how far you live from Main Street, how you usually get around, how often you use the Poudre River Trail, and, if you choose to answer, whether you have kids at home and how you heard about Plotline. If you arrive from a shared link, QR code or flyer, we note which kind of link it was.</li>
+    <li>A random respondent code created by your browser. It lets you update your answers and keeps one person from being counted twice. It is not linked to your name or contact details.</li>
+  </ul>
+  <p>Surveys never ask for your name, street address, email or phone number.</p>
+  <h3>When you sign up to be notified</h3>
+  <ul>
+    <li>Your email address and/or mobile number.</li>
+    <li>Whether you agreed to receive text messages, and the exact wording you agreed to, with the date.</li>
+    <li>Your town, ZIP code, and optionally your nearest intersection (not your street address), so we only contact you about projects near you.</li>
+  </ul>
+  <p>This information is stored separately from your survey answers. We do not link it to your answers.</p>
+  <h3>When you send feedback or request a survey</h3>
+  <ul><li>What you write, and any name, company, contact details and project information you provide. Feedback is not linked to your survey answers.</li></ul>
+  <h3>Information collected automatically</h3>
+  <ul>
+    <li>Like most websites, the services that host and deliver our site receive your IP address, browser type and the pages you request. See \u201cThird-party services\u201d below.</li>
+    <li>Your browser stores your respondent code and a copy of your own answers on your device, so you can see and update them. You can clear this at any time in your browser settings.</li>
+    <li>We do not use advertising cookies, tracking pixels or analytics tools.</li>
+  </ul>
+
+  ${h('How we use information')}
+  <ul>
+    <li>To publish combined survey results and anonymous comments.</li>
+    <li>To give survey sponsors combined results broken out by groups, such as \u201cneighbors within walking distance\u201d or \u201cweekly trail users.\u201d</li>
+    <li>To send people who signed up survey invitations by email or text, only as they agreed.</li>
+    <li>To respond to feedback and survey requests.</li>
+    <li>To prevent duplicate or fraudulent responses and to keep the service secure.</li>
+    <li>To comply with the law.</li>
+  </ul>
+
+  ${h('What sponsors and the public see')}
+  <ul>
+    <li><b>The public</b> sees combined results and anonymous comments for each survey.</li>
+    <li><b>Sponsors</b> see combined results broken out by groups such as town, distance, travel habits and household type, plus anonymous comments.</li>
+    <li><b>Small groups are flagged.</b> When a filter matches fewer than 10 people, we mark it as too small to rely on.</li>
+    <li><b>Comments are reviewed before they are published</b>, and are published without your name. Please do not include personal details. We may edit a comment to remove names or other identifying details, or decline to publish it.</li>
+  </ul>
+  <p>Nobody outside Plotline receives individual survey responses, respondent codes, or contact information.</p>
+
+  ${h('How we share information')}
+  <p>We share personal information only:</p>
+  <ul>
+    <li><b>With service providers</b> that host our website and store our data on our behalf, only to run the service (listed below).</li>
+    <li><b>When required by law</b>, such as a valid subpoena, or to protect the safety of any person.</li>
+    <li><b>If Plotline is sold or merges</b> with another company, in which case this policy and our promise continue to apply to information collected under it.</li>
+  </ul>
+  <p>We require survey sponsors to agree not to attempt to identify any respondent from survey results.</p>
+
+  ${h('Text messages')}
+  <p>If you agree to receive texts, we will text you invitations to surveys about projects near you, up to 4 times a month. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Agreeing to receive texts is not required to use Plotline.</p>
+  <p><b>No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Text messaging opt-in data and consent are never shared with any third party.</b></p>
+
+  ${h('Email')}
+  <p>Every survey invitation we email includes a way to unsubscribe, and we honor unsubscribe requests within 10 business days.</p>
+
+  ${h('Third-party services')}
+  <p>Our site relies on these services, which may receive your IP address and basic browser information when you visit:</p>
+  <ul>
+    <li><b>GitHub Pages</b> (GitHub, Inc.) hosts the website.</li>
+    <li><b>Google Apps Script and Google Sheets</b> (Google LLC) receive and store survey answers, sign-ups and messages for us.</li>
+    <li><b>OpenStreetMap</b> tile servers provide the map images.</li>
+    <li><b>unpkg</b> delivers the open-source map software (Leaflet).</li>
+    <li><b>Google Fonts</b> delivers the site\u2019s fonts.</li>
+  </ul>
+  <p>Other than Google, which stores data for us, these services do not receive your survey answers.</p>
+
+  ${h('Do Not Track')}
+  <p>We do not track you across other websites, so we do not change our practices in response to browser Do Not Track signals. Other than the services listed above, no third parties track your activity on our site.</p>
+
+  ${h('How long we keep information')}
+  <ul>
+    <li>Survey answers: for as long as a survey\u2019s results are published, so neighborhoods can compare over time.</li>
+    <li>Contact information for notifications: until you unsubscribe, then deleted, except a record of your opt-out so we do not contact you again.</li>
+    <li>Feedback and survey requests: for as long as needed to respond and run the service.</li>
+  </ul>
+  <p>We will set specific time limits before Plotline leaves alpha testing.</p>
+
+  ${h('Your choices and rights')}
+  <p>You can ask us to tell you what personal information we have about you, correct or delete it, or remove you from notifications. Because surveys are anonymous, we can only find your survey answers if you give us the respondent code stored in your browser. We offer these choices to everyone, wherever you live.</p>
+  <p>During alpha testing, send requests through the feedback form on any results page, or reply to any message we send you. Write \u201cPrivacy request\u201d and tell us what you would like us to do.</p>
+
+  ${h('Security')}
+  <p>We limit access to stored data to the people who run Plotline and keep contact information separate from survey answers. No system is perfectly secure. If a breach affects your personal information, we will notify you as required by law.</p>
+
+  ${h('Children')}
+  <p>Plotline is intended for adults 18 and older. We do not knowingly collect personal information from children under 13. If we learn we have, we will delete it.</p>
+
+  ${h('Changes to this policy')}
+  <p>If we change this policy, we will post the new version here with a new date. If a change materially affects how we use information we already have, we will tell people who signed up for notifications before it takes effect. We will never change our promise not to sell personal information without your consent.</p>
+  </article>`;
+}
+
+function viewReleases(){
+  const tag={new:'New',improved:'Improved',fixed:'Fixed'};
+  const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  return `<section class="hero">
+    <span class="label">Release notes</span>
+    <h1>What’s new in Plotline</h1>
+    <p>Every change to the site, newest first. Plotline is in alpha testing, so versions start at 0.</p>
+  </section>
+  <div class="releases">${RELEASES.map((r,i)=>`<article class="release" id="v${r.v.replace(/\./g,'-')}">
+    <div class="rel-head"><span class="rel-v num">v${esc(r.v)}</span><time datetime="${r.date}" class="muted small">${fmt(r.date)}</time>${i===0?'<span class="rel-current">Current</span>':''}</div>
+    <h2>${esc(r.title)}</h2>
+    <ul>${r.items.map(([k,t])=>`<li><span class="rel-tag rel-${k}">${tag[k]}</span><span>${esc(t)}</span></li>`).join('')}</ul>
+  </article>`).join('')}</div>`;
+}
+
+// ---------- spam traps ----------
+const hpVal=id=>((document.getElementById(id)||{}).value||'').trim();
+
+// ---------- share kit ----------
+const BASE_URL=location.origin+location.pathname;
+const linkFor=(hash,src)=>BASE_URL+'?src='+encodeURIComponent(src)+'#'+hash;
+function qrInto(el,text,size){
+  el.innerHTML='';
+  if(!window.QRCode){el.innerHTML='<p class="small muted">QR code could not load. Use the link instead.</p>';return}
+  new QRCode(el,{text,width:size,height:size,colorDark:'#18282A',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});
+}
+function openShare(kind,id){
+  const dlg=document.getElementById('share-dlg'); if(!dlg)return;
+  let title,hash,flyer='';
+  if(kind==='site'){const b=BUILDINGS.find(x=>x.id===id); if(!b)return; title=b.name; hash=b.slug; flyer=`<a class="btn primary" href="#flyer-${b.slug}" data-act="close-share">Print a flyer</a>`;}
+  else {const A=AREA[id]; if(!A)return; title=A.name; hash='area-'+A.slug;}
+  const link=linkFor(hash,'share'), qrLink=linkFor(hash,'qr');
+  dlg.innerHTML=`<div class="share-in">
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 id="share-title">Share ${esc(title)}</h2><button type="button" class="btn ghost" data-act="close-share" aria-label="Close">Close</button></div>
+    <p class="small muted">Send neighbors straight to this ${kind==='site'?'survey':'area'}. It takes about 2 minutes and never asks for a name.</p>
+    <div class="field"><label class="lbl" for="share-link">Link</label><div class="copyrow"><input type="text" id="share-link" readonly value="${esc(link)}"><button type="button" class="btn primary" data-act="copy-link">Copy</button></div></div>
+    ${navigator.share?'<button type="button" class="btn ghost" data-act="native-share">Share with an app…</button>':''}
+    <div class="qrbox"><div id="share-qr" class="qr"></div><div class="qr-side"><b>QR code</b><span class="small muted">Point a phone camera at it, or save it for a post, flyer or sign.</span><a class="btn ghost" id="qr-dl" download="plotline-${esc(hash)}-qr.png" href="#">Download QR code</a></div></div>
+    ${flyer?`<div class="row">${flyer}<span class="small muted">A printable page for a storefront window, coffee shop board or mailbox.</span></div>`:''}
+  </div>`;
+  qrInto(document.getElementById('share-qr'),qrLink,180);
+  setTimeout(()=>{const c=dlg.querySelector('#share-qr canvas'),a=document.getElementById('qr-dl');if(c&&a)a.href=c.toDataURL('image/png')},150);
+  dlg.dataset.title=title; dlg.dataset.link=link;
+  if(dlg.showModal)dlg.showModal(); else dlg.setAttribute('open','');
+}
+function closeShare(){const d=document.getElementById('share-dlg');if(d){if(d.close)d.close();else d.removeAttribute('open')}}
+function viewFlyer(b){
+  const A=AREA[b.area], link=linkFor(b.slug,'flyer');
+  return `<div class="no-print flyer-tools"><a class="back" href="#${b.slug}">← Back to ${esc(b.name)}</a><div class="row"><button type="button" class="btn primary" data-act="print">Print this flyer</button><span class="small muted">Letter size. Use your browser’s print dialog to save as PDF.</span></div></div>
+  <article class="flyer">
+    <span class="label">${esc(A.name)} · ${esc(A.town)}</span>
+    <h1>What should go at ${esc(b.name.split(' · ')[0])}?</h1>
+    <div class="flyer-art">${art(b)}</div>
+    <p class="flyer-idea">One idea: <b>${esc(b.concept.title)}</b>. Love it? Hate it? Want something else? Tell the people deciding.</p>
+    <div class="flyer-qr"><div id="flyer-qr" class="qr"></div><div><p class="flyer-cta">Scan to weigh in</p><p>About 2 minutes. No name or address needed. Results are public.</p><p class="small">${esc(BASE_URL.replace(/^https?:\/\//,''))}</p></div></div>
+    <p class="flyer-foot">Plotline · We sell what the neighborhood thinks. Never who you are.</p>
+  </article>`;
+}
+
+// ---------- sponsor reports ----------
+const fmtN=(v,d=1)=>v==null?'–':v.toFixed(d);
+const fmtP=v=>v==null?'–':Math.round(v*100)+'%';
+const fmtD=v=>v==null?'–':'$'+v.toFixed(0);
+function segRow(label,st){const small=st.n>0&&st.n<10;return `<tr${small?' class="small-n"':''}><th scope="row">${esc(label)}${small?' *':''}</th><td class="num">${st.n}</td><td class="num">${fmtN(st.concept)}</td><td class="num">${fmtN(st.location)}</td><td class="num">${fmtP(st.weeklyPlus)}</td><td class="num">${fmtD(st.ticket)}</td></tr>`}
+function segTable(b,caption,segs){
+  return `<div class="tbl"><table><caption>${caption}</caption><thead><tr><th scope="col">Group</th><th scope="col">People</th><th scope="col">Idea (1–5)</th><th scope="col">Location (1–5)</th><th scope="col">Weekly or more</th><th scope="col">Spend / visit</th></tr></thead>
+  <tbody>${segs.map(([l,fn])=>segRow(l,stats(b,{who:'all',fn}))).join('')}</tbody></table></div>`;
+}
+function reportHead(kind,title,sub){
+  const live=activeMode()==='live';
+  return `<div class="no-print flyer-tools"><a class="back" href="javascript:history.back()">← Back</a><div class="row"><button type="button" class="btn primary" data-act="print">Print or save as PDF</button>${modeSwitch()}</div></div>
+  <header class="rep-head"><span class="label">Plotline resident report · ${kind}</span><h1>${esc(title)}</h1><p class="muted">${esc(sub)}</p>
+  <p class="small muted">Generated ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Plotline v${VERSION} · ${live?'Real responses':'<b>Simulated demo data, not real responses</b>'}</p></header>`;
+}
+function reportMethods(){
+  return `<section class="rep-sec"><h2>How to read this</h2><ul class="small">
+    <li>Residents chose to answer; results are not weighted to match the population, so treat them as strong signals, not a census.</li>
+    <li>Groups marked * have fewer than 10 people. Treat them as hints.</li>
+    <li>Residents are anonymous. Distance is self-reported: walking distance, under 2 miles, 2–6 miles, or farther.</li>
+    <li>Comments are reviewed and published without names.</li></ul>
+    <p class="small muted">Plotline · We sell what the neighborhood thinks. Never who you are.</p></section>`;
+}
+function viewReport(b){
+  const A=AREA[b.area], st=stats(b,{who:'all'});
+  const tp=topOf(st.picks), tx=topOf(st.extras);
+  const dist=[['Walking distance',(p,x)=>effDist(p,x)==='walk'],['Under 2 miles',(p,x)=>effDist(p,x)==='near'],['2–6 miles',(p,x)=>effDist(p,x)==='mid'],['6+ miles',(p,x)=>effDist(p,x)==='far'],['Everyone',null]];
+  const towns=TOWNS.map(([v,l])=>[l,p=>(p.profile||{}).town===v]).concat([['Everyone',null]]);
+  const grouped={};st.comments.forEach(q=>{(grouped[q.text]=grouped[q.text]||[]).push(q)});
+  const quotes=Object.entries(grouped).sort((x,y)=>y[1].length-x[1].length).slice(0,15).map(([t,qs])=>{const q=qs[0];return `<li>“${esc(t)}” <span class="muted">— ${qs.length>1?`said by ${qs.length} people`:esc([LBL.towns[q.p.town]||'',q.dist?DIST_LABEL[q.dist]+' away':'',`rated ${q.c.concept}/5`].filter(Boolean).join(', '))}</span></li>`}).join('');
+  return reportHead('Site',b.name,`${A.name}, ${A.town} · ${b.tag} · ${b.size}${b.price?' · '+b.price:''}`)+`
+  <section class="rep-sec"><h2>Summary</h2>
+    <p class="headline">${st.n?`${st.n} ${st.n===1?'person':'people'} weighed in. ${st.nc?`The suggested idea, ${esc(b.concept.label)}, scored ${fmtN(st.concept)} out of 5; ${fmtP(st.weeklyPlus)} would go weekly or more.`:''}${tp?` Top wish for the site: ${esc(LBL.cats[tp[0]])}.`:''}`:'No responses yet.'}</p>
+    <div class="kpis"><div class="kpi"><b>${st.n}</b><span>people</span></div><div class="kpi"><b>${fmtN(st.concept)}</b><span>idea score (of 5)</span></div><div class="kpi"><b>${fmtN(st.location)}</b><span>location score (of 5)</span></div><div class="kpi"><b>${fmtD(st.ticket)}</b><span>typical spend per visit</span></div></div>
+  </section>
+  <section class="rep-sec"><h2>Demand by distance</h2>${segTable(b,'How far people live from the site',dist)}</section>
+  <section class="rep-sec"><h2>Demand by town</h2>${segTable(b,'Where people live',towns.filter(([l,fn])=>!fn||stats(b,{who:'all',fn}).n>0))}</section>
+  <section class="rep-sec grid2">
+    <div><h2>What people want here</h2><p class="small muted">${st.nd} answered, up to 3 picks each</p>${bars(st.picks,CATS,st.nd,{sort:true,limit:8})}${st.writeins.length?`<p class="small"><b>Write-ins:</b> ${st.writeins.slice(0,12).map(esc).join(', ')}</p>`:''}</div>
+    <div><h2>Must-haves for the idea</h2><p class="small muted">${st.nc} rated the idea</p>${bars(st.extras,EXTRAS,st.nc,{sort:true,limit:6})}${tx?`<p class="small">Top ask: <b>${esc(LBL.extras[tx[0]])}</b></p>`:''}</div>
+  </section>
+  <section class="rep-sec grid2">
+    <div><h2>When they would go</h2>${bars(st.when,WHEN,st.nc)}</div>
+    <div><h2>How they would get there</h2>${bars(st.how,HOW,st.nc)}<h2 style="margin-top:14px">How often</h2>${bars(st.freq,FREQ,st.nc)}</div>
+  </section>
+  <section class="rep-sec"><h2>What residents said</h2>${quotes?`<ul class="quotes">${quotes}</ul>`:'<p class="muted small">No reviewed comments yet.</p>'}</section>
+  ${reportMethods()}`;
+}
+function viewAreaReport(A){
+  const sites=sitesIn(A);
+  const rows=sites.map(b=>{const st=stats(b,{who:'all'}),tp=topOf(st.picks),tx=topOf(st.extras);return {b,st,tp,tx}});
+  const best=rows.filter(r=>r.st.nc>=3).sort((x,y)=>(y.st.concept||0)-(x.st.concept||0))[0];
+  return reportHead('Area',A.name,`${A.town} · ${sites.length} site${sites.length===1?'':'s'} · ${A.blurb}`)+`
+  <section class="rep-sec"><h2>Sites compared</h2>
+    ${best?`<p class="headline">Strongest idea so far: ${esc(best.b.concept.title)} at ${esc(best.b.name.split(' · ')[0])}, ${fmtN(best.st.concept)} out of 5 from ${best.st.nc} people.</p>`:''}
+    <div class="tbl"><table><thead><tr><th scope="col">Site</th><th scope="col">Suggested idea</th><th scope="col">People</th><th scope="col">Idea (1–5)</th><th scope="col">Location (1–5)</th><th scope="col">Weekly or more</th><th scope="col">Top wish</th><th scope="col">Top must-have</th></tr></thead>
+    <tbody>${rows.map(({b,st,tp,tx})=>`<tr${st.n>0&&st.n<10?' class="small-n"':''}><th scope="row">${esc(b.letter)} · ${esc(b.name.split(' · ')[0])}${st.n>0&&st.n<10?' *':''}</th><td>${esc(b.concept.title)}</td><td class="num">${st.n}</td><td class="num">${fmtN(st.concept)}</td><td class="num">${fmtN(st.location)}</td><td class="num">${fmtP(st.weeklyPlus)}</td><td>${tp?esc(LBL.cats[tp[0]]):'–'}</td><td>${tx?esc(LBL.extras[tx[0]]):'–'}</td></tr>`).join('')}</tbody></table></div>
+    <p class="small no-print">Full detail for each site: ${sites.map(b=>`<a href="#report-${b.slug}">${esc(b.letter)} · ${esc(b.name.split(' · ')[0])}</a>`).join(' · ')}</p>
+  </section>
+  ${reportMethods()}`;
+}
+
+// ---------- render ----------
+function render(){
+  const r=route();
+  if(r.view==='survey')app.innerHTML=viewSurvey(r.b);
+  else if(r.view==='results')app.innerHTML=viewResults(r.b);
+  else if(r.view==='about')app.innerHTML=viewAbout();
+  else if(r.view==='join')app.innerHTML=viewJoin();
+  else if(r.view==='developers')app.innerHTML=viewDevelopers();
+  else if(r.view==='privacy')app.innerHTML=viewPrivacy();
+  else if(r.view==='releases')app.innerHTML=viewReleases();
+  else if(r.view==='flyer')app.innerHTML=viewFlyer(r.b);
+  else if(r.view==='report')app.innerHTML=viewReport(r.b);
+  else if(r.view==='areareport')app.innerHTML=viewAreaReport(r.area);
+  else if(r.view==='area')app.innerHTML=viewArea(r.area);
+  else app.innerHTML=viewHome();
+  setStatus();
+  const navKey=r.view==='about'||r.view==='developers'||r.view==='privacy'||r.view==='releases'?'about':r.view==='join'?'join':'home';
+  document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===navKey));
+  document.body.classList.toggle('flyer-mode',r.view==='flyer');
+  if(r.view==='flyer')setTimeout(()=>{const el=document.getElementById('flyer-qr');if(el)qrInto(el,linkFor(r.b.slug,'flyer'),220)},0);
+  if(r.view==='home'||r.view==='area')initMap(r); else if(MAP){MAP.remove();MAP=null;MARKERS={}}
+}
+let lastRoute='';
+window.addEventListener('hashchange',()=>{const h=location.hash;if(h!==lastRoute){lastRoute=h;S.draftFor=null;render();window.scrollTo(0,0)}});
+
+let toastTimer;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,3200)}
+
+// ---------- events ----------
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('[data-chip]');
+  if(chip&&chip.closest('#survey')){
+    const g=chip.closest('.chips'), name=g.dataset.name, multi=g.dataset.multi==='1', max=+g.dataset.max||0, v=chip.dataset.chip;
+    S.touched=true;
+    if(multi){
+      const arr=S.draft[name]||(S.draft[name]=[]); const i=arr.indexOf(v);
+      if(i>=0)arr.splice(i,1); else { if(max&&arr.length>=max){toast(`Pick up to ${max}. Tap one to remove it first.`);return} arr.push(v) }
+      chip.setAttribute('aria-pressed',arr.includes(v));
+    } else {
+      S.draft[name]=S.draft[name]===v?undefined:v;
+      g.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.chip===S.draft[name]));
+      if(name==='town'){const w=$('#dist-wrap');if(w)w.hidden=S.draft.town!=='timnath'}
+    }
+    return;
+  }
+  const act=e.target.closest('[data-act]'); if(!act)return;
+  const a=act.dataset.act, v=act.dataset.v;
+  if(a==='mode'){S.mode=v;render()}
+  else if(a==='who'){S.filters.who=v;render()}
+  else if(a==='flag'){S.filters[v]=!S.filters[v];render()}
+  else if(a==='preset'){
+    S.filters=v==='walk'?{who:'walk',trail:false,bike:false,weekend:false,kids:false}
+      :v==='trail'?{who:'windsor',trail:true,bike:true,weekend:true,kids:false}
+      :{who:'all',trail:false,bike:false,weekend:false,kids:false};
+    render();
+  }
+  else if(a==='locate'){locate(v)}
+  else if(a==='share'){openShare('site',v)}
+  else if(a==='share-area'){openShare('area',v)}
+  else if(a==='close-share'){closeShare()}
+  else if(a==='print'){window.print()}
+  else if(a==='copy-link'){
+    const inp=document.getElementById('share-link'); const val=inp?inp.value:'';
+    const ok=()=>{act.textContent='Copied';toast('Link copied.')};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(val).then(ok).catch(()=>{inp.select();toast('Press Ctrl+C to copy.')});
+    else {inp.select();toast('Press Ctrl+C to copy.')}
+  }
+  else if(a==='native-share'){const d=document.getElementById('share-dlg');navigator.share({title:'Plotline: '+d.dataset.title,text:'What should go here? Weigh in (about 2 minutes, no name needed).',url:d.dataset.link}).catch(()=>{})}
+  else if(a==='to-request'){const c=document.getElementById('request');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
+  else if(a==='od-request'){
+    const val=id=>((document.getElementById(id)||{}).value||'').trim();
+    const err=$('#r-error');
+    if(!val('r-contact')||!val('r-prop')){err.textContent='Please add a way to reach you and the project address.';err.hidden=false;return}
+    err.hidden=true; act.disabled=true; act.textContent='Sending\u2026';
+    const text='[On-demand request] Name: '+val('r-name')+' | Contact: '+val('r-contact')+' | Project: '+val('r-prop')+' | Reach: '+val('r-reach')+' | Timeline: '+val('r-when')+' | Details: '+val('r-msg');
+    gs('submitFeedback',{rid:'',text:text.slice(0,1500),hp:hpVal('hp-request')}).then(()=>{act.textContent='Sent';toast('Thanks! We will get back to you with a plan.');['r-name','r-contact','r-prop','r-msg'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})})
+      .catch(()=>{act.disabled=false;act.textContent='Send request';toast('Could not send. Please try again.')});
+  }
+  else if(a==='join'){
+    const val=id=>((document.getElementById(id)||{}).value||'').trim();
+    const email=val('j-email'), phone=val('j-phone').replace(/[^\d+]/g,''), sms=!!(document.getElementById('j-sms')||{}).checked;
+    const town=val('j-town'), zip=val('j-zip'), near=val('j-near');
+    const err=$('#j-error'); const fail=m=>{err.textContent=m;err.hidden=false};
+    if(!email&&!phone)return fail('Add an email, a mobile number, or both.');
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return fail('That email address does not look right.');
+    if(phone&&phone.replace(/\D/g,'').length<10)return fail('Please enter a 10-digit mobile number.');
+    if(phone&&!sms)return fail('To get texts, check the box agreeing to receive them. Or remove the number to use email only.');
+    if(!town)return fail('Please choose where you live.');
+    if(zip&&!/^\d{5}$/.test(zip))return fail('ZIP code should be 5 digits.');
+    err.hidden=true; act.disabled=true; act.textContent='Signing you up\u2026';
+    const payload={email,phone,sms,town:LBL.towns[town]||town,zip,near,source:'join page',hp:hpVal('hp-join')};
+    const done=()=>{const f=document.getElementById('join-form');if(f)f.innerHTML='<div class="qhead"><h2>You\u2019re on the list.</h2><p class="muted">We will reach out when there is a new project near you. Thanks for speaking up for your neighborhood.</p></div><div class="row"><a class="btn primary" href="#home">Weigh in on a building now</a></div>';toast('You are on the list.')};
+    gs('joinPanel',payload).then(done).catch(()=>{
+      const text='[Panel signup] Email: '+email+' | Mobile: '+phone+' | Text consent: '+(sms?'yes':'no')+' | Town: '+payload.town+' | ZIP: '+zip+' | Near: '+near;
+      gs('submitFeedback',{rid:'',text,hp:payload.hp}).then(done).catch(()=>{act.disabled=false;act.textContent='Notify me';toast('Could not sign you up. Please try again.')});
+    });
+  }
+  else if(a==='edit-profile'){S.editProfile=true;S.touched=true;render()}
+  else if(a==='feedback'){
+    const ta=$('#fb'); const text=(ta&&ta.value||'').trim();
+    if(!text){toast('Type a few words first.');return}
+    act.disabled=true; act.textContent='Sending…';
+    gs('submitFeedback',{rid:'',text,hp:hpVal('hp-fb')}).then(()=>{ta.value='';act.textContent='Thanks!';toast('Feedback sent. Thank you!')})
+      .catch(()=>{act.disabled=false;act.textContent='Send feedback';toast('Could not send. Please try again.')});
+  }
+});
+document.addEventListener('input',e=>{const f=e.target.dataset&&e.target.dataset.field;if(f&&S.draft){S.draft[f]=e.target.value;S.touched=true}});
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='survey')return;
+  e.preventDefault();
+  const r=route(); if(r.view!=='survey')return;
+  const b=r.b, d=S.draft, needProfile=!S.mine.profile||S.editProfile;
+  const missing=[];
+  if(!d.picks.length&&!d.writein.trim())missing.push('what you would want here');
+  if(!d.dist)missing.push('how far you live from here');
+  if(!d.concept)missing.push('how you feel about the idea');
+  if(!d.location)missing.push('how you feel about the spot');
+  if(needProfile){ if(!d.town)missing.push('where you live'); if(!d.trail)missing.push('how often you use the trail'); }
+  const err=$('#form-error');
+  if(missing.length){err.textContent='Almost there. Please answer: '+missing.join(', ')+'.';err.hidden=false;err.scrollIntoView({block:'center',behavior:'smooth'});return}
+  const now=Date.now();
+  S.meta={hp:hpVal('hp-survey'),elapsed:now-(S.formStart||now),update:!!(S.mine.discovery[b.id]||S.mine.concepts[b.id])};
+  S.mine.discovery[b.id]={picks:d.picks.slice(),writein:d.writein.trim(),at:now};
+  S.mine.concepts[b.id]={concept:+d.concept,location:+d.location,dist:d.dist,how:d.how||null,when:d.when.slice(),freq:d.freq||null,spend:d.spend||null,extras:d.extras.slice(),comment:d.comment.trim(),at:now};
+  if(needProfile){S.mine.profile={town:d.town,modes:d.modes.slice(),trail:d.trail,kids:d.kids||null}}
+  if(d.heard&&!S.mine.heard)S.mine.heard=d.heard;
+  S.mine.updatedAt=now;
+  const btn=e.target.querySelector('button[type=submit]'); if(btn){btn.disabled=true;btn.textContent='Saving…'}
+  const shared=await save(false,b);
+  S.meta=null;
+  S.mode='live'; S.touched=false; S.filters={who:'all',trail:false,bike:false,weekend:false,kids:false};
+  const hadComment=!!d.comment.trim();
+  toast(shared?(hadComment?'Thanks! Your answers are in. Your comment will appear after a quick review.':'Thanks! Your answers are in. Here are the results.'):'Thanks! Saved on this device. Here are the results.');
+  location.hash=b.slug+'-results';
+});
+
+lastRoute=location.hash;
+if(STAGE==='staging'){const sb=document.getElementById('stage-banner');sb.hidden=false;sb.innerHTML='<b>Test copy.</b> This is where new changes are checked before they go live. Answers here are saved to separate test tabs and never appear on the live site. <a href="../">Go to the live site</a>';document.title='[TEST] '+document.title;}
+{const fv=document.getElementById('foot-ver');if(fv)fv.textContent='Version '+VERSION+' (alpha)';}
+render();
+setTimeout(connect,0);
+})();
+</script>
+
+</body>
+</html>

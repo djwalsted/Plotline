@@ -278,6 +278,9 @@ dialog.share::backdrop{background:rgba(10,20,20,.45)}
 .tbl tr.small-n td,.tbl tr.small-n th{color:var(--muted)}
 .quotes{margin:0;padding-left:1.1em;display:grid;gap:8px}
 @media print{.rep-sec{padding-block:8px 2px}.tbl{border:0;overflow:visible}.tbl table{min-width:0}.kpis{break-inside:avoid}}
+.stage-banner{background:#7A2E8E;color:#fff;font-size:.88rem;padding:10px max(16px,env(safe-area-inset-left,0px));text-align:center}
+.stage-banner a{color:#fff;font-weight:700}
+@media print{.stage-banner{display:none}}
 </style>
 </head>
 <body>
@@ -291,6 +294,7 @@ dialog.share::backdrop{background:rgba(10,20,20,.45)}
   <nav class="nav"><a href="#home" data-nav="home">Weigh in</a><a href="#join" data-nav="join">Get notified</a><a href="#about" data-nav="about">About</a></nav>
   <span class="status" id="status">Connecting…</span>
 </div></header>
+<div class="stage-banner" id="stage-banner" hidden></div>
 <main class="wrap" id="app"></main>
 <footer class="foot"><div class="foot-in">
   <span>Plotline · Timnath, Colorado</span>
@@ -349,7 +353,10 @@ const BUILDINGS = [
    demo:{appeal:3.5, weights:{hotel:18,restaurant:18,fastfood:10,gas:10,grocery:8,taproom:8,coffee:8,fitness:6,housing:4}, when:{wkdam:.1,wkdmid:.3,wkdpm:.5,wkndam:.2,wkndpm:.5}, spend:[['20+',50],['10-20',40],['5-10',10]],
      comments:[['any','Visitors for tournaments and concerts need somewhere to stay.'],['any','A good restaurant at the interstate would get our business.'],['drive','Make sure the frontage road can handle it.']]}}
 ];
-const IMG={a:'img/a.jpg',b:'img/b.jpg',c:'img/c.jpg',d:'img/d.jpg'};
+const STAGE=/\/staging\/?/.test(location.pathname)?'staging':'live';
+const ASSET_BASE=STAGE==='staging'?'../':'';
+const asset=u=>u&&!/^(https?:|data:|\/)/.test(u)?ASSET_BASE+u:u;
+const IMG={a:asset('img/a.jpg'),b:asset('img/b.jpg'),c:asset('img/c.jpg'),d:asset('img/d.jpg')};
 const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
 const sitesIn=A=>BUILDINGS.filter(b=>b.area===A.id);
 const GEO={"trail":[[[40.53727,-105.00013],[40.53724,-105.00013],[40.53722,-105.00015],[40.53712,-105.00024],[40.53701,-105.00037],[40.53659,-105.00076],[40.53648,-105.00091],[40.53637,-105.00101],[40.53629,-105.00103],[40.53623,-105.00102],[40.53616,-105.00102],[40.53609,-105.00099],[40.53603,-105.00094],[40.53584,-105.00063],[40.53571,-105.00054],[40.53541,-105.00041],[40.53516,-105.00032],[40.53487,-105.00023],[40.53453,-105.00017],[40.53421,-105.00016],[40.5341,-105.00015],[40.53297,-105.0002],[40.53216,-105.0001],[40.53178,-104.99999],[40.53149,-104.99987],[40.53149,-104.99977],[40.5314,-104.99955],[40.53132,-104.99929],[40.53131,-104.99913],[40.53128,-104.99891],[40.53124,-104.99873],[40.5312,-104.99858],[40.5311,-104.99837],[40.53103,-104.99822],[40.53101,-104.99798],[40.53096,-104.99759],[40.53092,-104.99743],[40.53085,-104.99729],[40.53081,-104.99717],[40.53079,-104.99702],[40.53079,-104.997],[40.53076,-104.99648],[40.53076,-104.99636],[40.53075,-104.99625],[40.53075,-104.99609],[40.53075,-104.99601],[40.53074,-104.99574],[40.53074,-104.99562],[40.53074,-104.99537],[40.53072,-104.99517],[40.53071,-104.99502],[40.53072,-104.99495],[40.53071,-104.99484],[40.53068,-104.9947],[40.53069,-104.99461],[40.53069,-104.99455],[40.53068,-104.99444],[40.53066,-104.99433],[40.53065,-104.99422],[40.53065,-104.99415],[40.53064,-104.99405],[40.53062,-104.99392],[40.5306,-104.99387],[40.5306,-104.99379],[40.53063,-104.99365],[40.53066,-104.99353],[40.53066,-104.9934],[40.53066,-104.99333],[40.53067,-104.99316],[40.53068,-104.99298],[40.53069,-104.99281],[40.53069,-104.99271],[40.5307,-104.99263],[40.53067,-104.99249],[40.53062,-104.99239],[40.53058,-104.99235],[40.53051,-104.99231],[40.53046,-104.99223],[40.53043,-104.99208],[40.5304,-104.99193],[40.53036,-104.99182],[40.53029,-104.99176],[40.53025,-104.99153],[40.53022,-104.99077],[40.5302,-104.99034],[40.53021,-104.98988],[40.53024,-104.98899],[40.53024,-104.9881],[40.53021,-104.98718],[40.5302,-104.98692],[40.53013,-104.98665],[40.53003,-104.98648],[40.52988,-104.98638],[40.52917,-104.98628],[40.52815,-104.98617],[40.52764,-104.98617],[40.52747,-104.98614],[40.52682,-104.98614],[40.52637,-104.98611],[40.52607,-104.98614],[40.52583,-104.98626],[40.52554,-104.98632],[40.52526,-104.9863],[40.52482,-104.98641],[40.52466,-104.98659],[40.52451,-104.9867],[40.52447,-104.98674],[40.5242,-104.98675],[40.52415,-104.98674],[40.52406,-104.9868],[40.52395,-104.9869],[40.52387,-104.98694],[40.52379,-104.98692],[40.5237,-104.98688],[40.52367,-104.98686],[40.52324,-104.98653],[40.52316,-104.9865],[40.52304,-104.98648],[40.52297,-104.98648],[40.52293,-104.98651],[40.52292,-104.98653],[40.52291,-104.98657],[40.52293,-104.98726],[40.52296,-104.98725],[40.52295,-104.9868]],[[40.55915,-105.02003],[40.55911,-105.01998],[40.55905,-105.0199],[40.55883,-105.01974],[40.55863,-105.01965],[40.55853,-105.01962],[40.55837,-105.01959],[40.5583,-105.01955],[40.55823,-105.01954],[40.55818,-105.01957],[40.55807,-105.01973],[40.558,-105.01976],[40.55795,-105.01977],[40.55785,-105.01971],[40.55777,-105.01966],[40.55772,-105.01966],[40.55768,-105.01967],[40.55754,-105.01974],[40.55743,-105.01977],[40.55722,-105.01979],[40.55714,-105.01979],[40.55698,-105.01976],[40.55686,-105.01976],[40.5567,-105.0198],[40.55659,-105.01981],[40.55644,-105.01981],[40.5564,-105.01979],[40.55632,-105.01971],[40.55624,-105.01968]],[[40.52295,-104.9868],[40.52293,-104.98554]],[[40.51935,-104.97671],[40.51924,-104.97706],[40.51921,-104.9772],[40.51919,-104.97739],[40.51919,-104.97746],[40.51919,-104.97753],[40.51918,-104.97778],[40.51915,-104.97799],[40.51909,-104.97815],[40.51907,-104.9782],[40.51896,-104.97844],[40.5189,-104.97852],[40.51886,-104.97865],[40.51888,-104.97874],[40.51895,-104.97884],[40.51925,-104.97915],[40.51934,-104.97926],[40.51944,-104.97936],[40.5197,-104.97954],[40.51987,-104.97966],[40.52019,-104.9798],[40.52041,-104.97993],[40.52068,-104.97999],[40.52088,-104.98009],[40.52099,-104.98018],[40.52102,-104.98014],[40.52104,-104.98021],[40.52107,-104.98028],[40.52115,-104.98035],[40.52137,-104.98048],[40.52194,-104.9807],[40.52213,-104.98085],[40.52224,-104.98094],[40.52229,-104.98111],[40.52229,-104.98142],[40.5223,-104.98158],[40.52225,-104.98183],[40.52211,-104.98223],[40.52215,-104.98235],[40.52232,-104.9824],[40.52274,-104.98244],[40.52284,-104.98249],[40.52284,-104.98316],[40.52286,-104.98358],[40.52286,-104.9837],[40.52292,-104.98513],[40.52293,-104.98554]],[[40.51584,-104.9651],[40.51585,-104.96508],[40.51588,-104.96495],[40.51594,-104.96468],[40.51599,-104.96445],[40.51599,-104.96427],[40.51597,-104.96405],[40.51594,-104.96384],[40.5159,-104.96362],[40.5159,-104.96347],[40.5159,-104.96331],[40.51584,-104.96331],[40.51573,-104.96331],[40.51568,-104.96331],[40.51297,-104.96324],[40.51246,-104.96322]],[[40.51921,-104.97602],[40.51923,-104.97595],[40.51925,-104.97581],[40.51933,-104.97516],[40.51937,-104.97482],[40.51936,-104.97475],[40.51935,-104.9747]]],"main":[[[40.53023,-104.98229],[40.53115,-104.98229],[40.53151,-104.98229],[40.53156,-104.98229],[40.53195,-104.98229],[40.53201,-104.98229],[40.53277,-104.98229],[40.53299,-104.98229],[40.53303,-104.98229],[40.5331,-104.98229],[40.53314,-104.98229],[40.53327,-104.98229],[40.53379,-104.98228],[40.53445,-104.98228],[40.53452,-104.98228],[40.53511,-104.98229],[40.53552,-104.98229],[40.53602,-104.9823],[40.53608,-104.9823],[40.53678,-104.98228],[40.53747,-104.98229]],[[40.52475,-104.98229],[40.52484,-104.98233],[40.52509,-104.98233],[40.52634,-104.98232],[40.52689,-104.98232]],[[40.52294,-104.98219],[40.52305,-104.9822]]]};
@@ -472,6 +479,10 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.14.0', date:'2026-11-09', title:'Test copy of the site', items:[
+    ['new','A test copy of the site at /Plotline/staging/ for checking changes before they go live, clearly marked with a banner.'],
+    ['new','Answers, comments, sign-ups and feedback from the test copy go to separate test tabs and never appear on the live site.'],
+    ['improved','Sponsor reports group repeated comments and show how many people said them.']]},
   {v:'0.13.0', date:'2026-11-09', title:'Sponsor reports', items:[
     ['new','Printable report for every site: summary, demand by distance and by town, top wishes, must-haves, timing, travel and reviewed comments.'],
     ['new','Area report comparing every site in an area side by side.'],
@@ -585,17 +596,23 @@ function topOf(m){let best=null;for(const [k,v] of Object.entries(m))if(!best||v
 function setStatus(){
   const el=$('#status'); if(!el)return;
   el.classList.toggle('local',S.store==='local');
-  el.textContent=S.store==='live'?'Live · answers shared':S.store==='local'?'Saved on this device only':'Connecting…';
+  el.textContent=S.store==='live'?(STAGE==='staging'?'Test copy · connected':'Live · answers shared'):S.store==='local'?'Saved on this device only':'Connecting…';
 }
 // Backend: Google Apps Script web app (Code.gs) that stores answers in a Google Sheet.
 // Paste the deployed web app URL (ends in /exec) here:
 const API_URL='https://script.google.com/macros/s/AKfycbxgQHaGSkyc6ky3596PgzRLCugUZ-9110wGCGfnhqm9RK3fHDI83aWrL_AuMMDiIlGhPA/exec';
 function gs(fn,arg){
   if(!API_URL)return Promise.reject(new Error('no backend'));
-  const req=fn==='getAnswers'
-    ?fetch(API_URL+'?action=answers',{redirect:'follow'})
-    :fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:fn,payload:arg})});
-  return req.then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error(j&&j.error||'server error');return j.result});
+  const test=STAGE==='staging';
+  if(fn==='getAnswers'||fn==='all'){
+    const act=fn==='all'?'all':'answers';
+    return fetch(API_URL+'?action='+act+(test?'&test=1':''),{redirect:'follow'}).then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error(j&&j.error||'server error');return j.result});
+  }
+  // The test copy only saves when the backend can keep test data separate (version 3+).
+  if(test&&!(S.backendVersion>=3))return Promise.reject(new Error('Saving is turned off in the test copy until the backend is updated.'));
+  const body=Object.assign({},arg||{},test?{test:true}:{});
+  return fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:fn,payload:body})})
+    .then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error(j&&j.error||'server error');return j.result});
 }
 function getRid(){
   try{let v=localStorage.getItem('plotline-rid');if(!v){v='r'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('plotline-rid',v)}return v}
@@ -617,12 +634,19 @@ function groupRows(rows){
 }
 function connect(){
   const timer=setTimeout(()=>{if(S.store==='connecting'){S.store='local';setStatus();render()}},12000);
-  gs('getAnswers').then(rows=>{
-    clearTimeout(timer);
-    S.live=groupRows(rows); S.store='live'; S.liveReady=true;
-    setStatus();
-    const r=route(); if(r.view!=='survey'||!S.touched)render();
-  }).catch(()=>{clearTimeout(timer);S.store='local';setStatus();render()});
+  const done=rows=>{clearTimeout(timer);S.live=groupRows(rows);S.store='live';S.liveReady=true;setStatus();const r=route();if(r.view!=='survey'||!S.touched)render()};
+  const fail=()=>{clearTimeout(timer);S.store='local';setStatus();render()};
+  gs('all').then(res=>{
+    if(res&&typeof res==='object'&&res.version){
+      S.backendVersion=res.version;
+      if(res.config&&typeof applyConfig==='function')applyConfig(res.config);
+      done(res.answers);
+    } else {
+      // Older backend: it only knows how to return answers.
+      S.backendVersion=1;
+      gs('getAnswers').then(done).catch(fail);
+    }
+  }).catch(fail);
 }
 function rowFor(b){
   const p=S.mine.profile||{}, d=S.mine.discovery[b.id]||{}, c=S.mine.concepts[b.id]||{};
@@ -647,7 +671,7 @@ function save(quiet,b){
     setStatus(); return true;
   }).catch(e=>{
     S.store='local';setStatus();
-    if(!quiet)toast('Could not reach the server. Your answers are saved on this device; try again later.');
+    if(!quiet)toast(STAGE==='staging'&&!(S.backendVersion>=3)?'Saving is turned off in the test copy until the backend is updated.':'Could not reach the server. Your answers are saved on this device; try again later.');
     return false});
   return saving;
 }
@@ -1277,7 +1301,8 @@ function viewReport(b){
   const tp=topOf(st.picks), tx=topOf(st.extras);
   const dist=[['Walking distance',(p,x)=>effDist(p,x)==='walk'],['Under 2 miles',(p,x)=>effDist(p,x)==='near'],['2–6 miles',(p,x)=>effDist(p,x)==='mid'],['6+ miles',(p,x)=>effDist(p,x)==='far'],['Everyone',null]];
   const towns=TOWNS.map(([v,l])=>[l,p=>(p.profile||{}).town===v]).concat([['Everyone',null]]);
-  const quotes=st.comments.slice(0,20).map(q=>`<li>“${esc(q.text)}” <span class="muted">— ${esc([LBL.towns[q.p.town]||'',q.dist?DIST_LABEL[q.dist]+' away':'',`rated ${q.c.concept}/5`].filter(Boolean).join(', '))}</span></li>`).join('');
+  const grouped={};st.comments.forEach(q=>{(grouped[q.text]=grouped[q.text]||[]).push(q)});
+  const quotes=Object.entries(grouped).sort((x,y)=>y[1].length-x[1].length).slice(0,15).map(([t,qs])=>{const q=qs[0];return `<li>“${esc(t)}” <span class="muted">— ${qs.length>1?`said by ${qs.length} people`:esc([LBL.towns[q.p.town]||'',q.dist?DIST_LABEL[q.dist]+' away':'',`rated ${q.c.concept}/5`].filter(Boolean).join(', '))}</span></li>`}).join('');
   return reportHead('Site',b.name,`${A.name}, ${A.town} · ${b.tag} · ${b.size}${b.price?' · '+b.price:''}`)+`
   <section class="rep-sec"><h2>Summary</h2>
     <p class="headline">${st.n?`${st.n} ${st.n===1?'person':'people'} weighed in. ${st.nc?`The suggested idea, ${esc(b.concept.label)}, scored ${fmtN(st.concept)} out of 5; ${fmtP(st.weeklyPlus)} would go weekly or more.`:''}${tp?` Top wish for the site: ${esc(LBL.cats[tp[0]])}.`:''}`:'No responses yet.'}</p>
@@ -1447,6 +1472,7 @@ document.addEventListener('submit',async e=>{
 });
 
 lastRoute=location.hash;
+if(STAGE==='staging'){const sb=document.getElementById('stage-banner');sb.hidden=false;sb.innerHTML='<b>Test copy.</b> This is where new changes are checked before they go live. Answers here are saved to separate test tabs and never appear on the live site. <a href="../">Go to the live site</a>';document.title='[TEST] '+document.title;}
 {const fv=document.getElementById('foot-ver');if(fv)fv.textContent='Version '+VERSION+' (alpha)';}
 render();
 setTimeout(connect,0);

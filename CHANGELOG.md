@@ -2,6 +2,12 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.14.0 · 2026-11-09 · Test copy of the site
+
+- **New:** A test copy of the site at /Plotline/staging/ for checking changes before they go live, clearly marked with a banner.
+- **New:** Answers, comments, sign-ups and feedback from the test copy go to separate test tabs and never appear on the live site.
+- **Improved:** Sponsor reports group repeated comments and show how many people said them.
+
 ## v0.13.0 · 2026-11-09 · Sponsor reports
 
 - **New:** Printable report for every site: summary, demand by distance and by town, top wishes, must-haves, timing, travel and reviewed comments.
