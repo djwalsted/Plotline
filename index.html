@@ -459,6 +459,10 @@ const DEMO=makeDemo();
 
 // ---------- release notes (newest first; add an entry with every release) ----------
 const RELEASES=[
+  {v:'0.11.0', date:'2026-11-09', title:'Comment review', items:[
+    ['new','Comments are reviewed before they are published, to keep names and personal details off the site.'],
+    ['improved','Reviewers can remove a name from a comment and publish the rest.'],
+    ['improved','The survey and results pages explain that comments appear after review.']]},
   {v:'0.10.0', date:'2026-11-08', title:'How did you hear about Plotline?', items:[
     ['new','An optional question on your first survey: how you heard about Plotline. It is asked once and never shown publicly.'],
     ['improved','Shared links, QR codes and flyers fill in the answer for you, so we can tell which ways of reaching neighbors work best.']]},
@@ -846,7 +850,7 @@ function viewSurvey(b){
       <div class="field"><span class="lbl">How would you get there?</span>${chips('how',HOW)}</div>
       <div class="field"><span class="lbl">What would you spend on a typical visit?</span>${chips('spend',SPEND)}</div>
       <div class="field"><span class="lbl">What would make it a must-stop? <em>Pick any</em></span>${chips('extras',EXTRAS,{multi:true})}</div>
-      <div class="field"><label class="lbl" for="comment">Anything the buyer should hear? <em>Optional, published without your name</em></label><textarea id="comment" data-field="comment" maxlength="500" placeholder="Love the idea, but parking at school pickup is already tough…">${esc(d.comment)}</textarea></div>
+      <div class="field"><label class="lbl" for="comment">Anything the buyer should hear? <em>Optional. Published without your name after a quick review. Please leave out names and personal details.</em></label><textarea id="comment" data-field="comment" maxlength="500" placeholder="Love the idea, but parking at school pickup is already tough…">${esc(d.comment)}</textarea></div>
     </div>
     ${needProfile?`<div class="q">
       <div class="qhead"><span class="step">Step 3 of 3 · asked once</span><h2>A little about you</h2><p class="muted small">No name, no address. This lets buyers see what nearby neighbors want compared with visitors from Windsor or Fort Collins.</p></div>
@@ -859,7 +863,7 @@ function viewSurvey(b){
     <div style="display:grid;gap:10px;margin-top:18px">
       <p class="error" id="form-error" role="alert" hidden></p>
       <button type="submit" class="btn primary block">${answered?'Update my answers':'Submit and see results'}</button>
-      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public, and comments are published without who wrote them. Groups smaller than 10 people are flagged as too small to trust. <a href="#privacy">Privacy policy</a></p>
+      <p class="privacy"><b>We sell what the neighborhood thinks, never who you are.</b> We never ask your name or address. Results are public. Comments are reviewed, then published without who wrote them. Groups smaller than 10 people are flagged as too small to trust. <a href="#privacy">Privacy policy</a></p>
     </div>
   </form>`;
 }
@@ -898,7 +902,7 @@ function viewResults(b){
       </div>
       <div><p class="label" style="margin-bottom:8px">Must-haves</p>${bars(st.extras,EXTRAS,st.nc,{sort:true,limit:5})}</div>
     </div>
-    <div class="panel"><h3>What people said</h3>${quotes||'<p class="muted small">No comments from this group yet.</p>'}</div>`;
+    <div class="panel"><h3>What people said</h3><p class="small muted">Comments appear after a quick review, without names.</p>${quotes||'<p class="muted small">No reviewed comments from this group yet.</p>'}</div>`;
   }
   const A=AREA[b.area];
   return `<a class="back" href="#area-${A.slug}">← ${esc(A.name)}</a>
@@ -1102,7 +1106,7 @@ function viewPrivacy(){
     <li><b>The public</b> sees combined results and anonymous comments for each survey.</li>
     <li><b>Sponsors</b> see combined results broken out by groups such as town, distance, travel habits and household type, plus anonymous comments.</li>
     <li><b>Small groups are flagged.</b> When a filter matches fewer than 10 people, we mark it as too small to rely on.</li>
-    <li><b>Comments are published without your name.</b> Please do not include personal details in comments. We may edit or remove comments that identify a person.</li>
+    <li><b>Comments are reviewed before they are published</b>, and are published without your name. Please do not include personal details. We may edit a comment to remove names or other identifying details, or decline to publish it.</li>
   </ul>
   <p>Nobody outside Plotline receives individual survey responses, respondent codes, or contact information.</p>
 
@@ -1342,7 +1346,8 @@ document.addEventListener('submit',async e=>{
   const btn=e.target.querySelector('button[type=submit]'); if(btn){btn.disabled=true;btn.textContent='Saving…'}
   const shared=await save(false,b);
   S.mode='live'; S.touched=false; S.filters={who:'all',trail:false,bike:false,weekend:false,kids:false};
-  toast(shared?'Thanks! Your answers are in. Here are the results.':'Thanks! Saved on this device. Here are the results.');
+  const hadComment=!!d.comment.trim();
+  toast(shared?(hadComment?'Thanks! Your answers are in. Your comment will appear after a quick review.':'Thanks! Your answers are in. Here are the results.'):'Thanks! Saved on this device. Here are the results.');
   location.hash=b.slug+'-results';
 });
 

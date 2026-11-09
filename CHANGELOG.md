@@ -2,6 +2,12 @@
 
 Every change to the site, newest first. Also published at https://djwalsted.github.io/Plotline/#release-notes
 
+## v0.11.0 · 2026-11-09 · Comment review
+
+- **New:** Comments are reviewed before they are published, to keep names and personal details off the site.
+- **Improved:** Reviewers can remove a name from a comment and publish the rest.
+- **Improved:** The survey and results pages explain that comments appear after review.
+
 ## v0.10.0 · 2026-11-08 · How did you hear about Plotline?
 
 - **New:** An optional question on your first survey: how you heard about Plotline. It is asked once and never shown publicly.
